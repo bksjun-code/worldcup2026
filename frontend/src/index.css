@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #07090F;
+  --card-tint: rgba(255,255,255,0.035);
+  --card-tint-hover: rgba(255,255,255,0.06);
+}
+[data-theme="ocean"] {
+  --bg: #050D12;
+  --card-tint: rgba(0,180,210,0.04);
+  --card-tint-hover: rgba(0,180,210,0.08);
+}
+[data-theme="forest"] {
+  --bg: #060F08;
+  --card-tint: rgba(30,180,80,0.04);
+  --card-tint-hover: rgba(30,180,80,0.08);
+}
+[data-theme="purple"] {
+  --bg: #09070F;
+  --card-tint: rgba(140,80,220,0.05);
+  --card-tint-hover: rgba(140,80,220,0.09);
+}
+[data-theme="sunset"] {
+  --bg: #0F0A05;
+  --card-tint: rgba(220,120,30,0.04);
+  --card-tint-hover: rgba(220,120,30,0.08);
+}
+[data-theme="crimson"] {
+  --bg: #0F0508;
+  --card-tint: rgba(200,30,60,0.04);
+  --card-tint-hover: rgba(200,30,60,0.08);
+}
+[data-theme="slate"] {
+  --bg: #0A0C10;
+  --card-tint: rgba(100,120,160,0.05);
+  --card-tint-hover: rgba(100,120,160,0.09);
+}
+[data-theme="rose"] {
+  --bg: #0F070D;
+  --card-tint: rgba(220,60,140,0.04);
+  --card-tint-hover: rgba(220,60,140,0.08);
+}
+[data-theme="gold"] {
+  --bg: #0C0A04;
+  --card-tint: rgba(200,168,75,0.05);
+  --card-tint-hover: rgba(200,168,75,0.10);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: #e8e8ee;
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb { background: rgba(200,168,75,0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(200,168,75,0.6); }
+
+/* ───────────────────────────────────────────────
+   글로우 유틸리티 (차분한 강도)
+─────────────────────────────────────────────── */
+.glow-gold     { text-shadow: 0 0 16px rgba(200,168,75,0.7), 0 0 32px rgba(200,168,75,0.3); }
+.glow-box-gold { box-shadow: 0 0 16px rgba(200,168,75,0.2), inset 0 0 16px rgba(200,168,75,0.04); }
+.glow-box-red  { box-shadow: 0 0 16px rgba(139,30,47,0.3); }
+
+/* ───────────────────────────────────────────────
+   글래스모피즘 카드
+─────────────────────────────────────────────── */
+.wc-card {
+  background: var(--card-tint);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.3s ease;
+}
+.wc-card:hover {
+  background: var(--card-tint-hover);
+  border-color: rgba(200, 168, 75, 0.2);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(200, 168, 75, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ───────────────────────────────────────────────
+   글래스 인풋
+─────────────────────────────────────────────── */
+.glass-input {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #e8e8ee;
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.glass-input::placeholder { color: rgba(255,255,255,0.2); }
+.glass-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(200, 168, 75, 0.4);
+  box-shadow: 0 0 0 3px rgba(200,168,75,0.07);
+}
+
+/* ───────────────────────────────────────────────
+   버튼
+─────────────────────────────────────────────── */
+.btn-gold {
+  background: linear-gradient(135deg, rgba(200,168,75,0.95), rgba(180,140,50,0.9));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #07090F;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(200,168,75,0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(200,168,75,0.15), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.btn-gold:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 24px rgba(200,168,75,0.3), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn-gold:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ───────────────────────────────────────────────
+   슬라이더 Ken Burns 애니메이션
+─────────────────────────────────────────────── */
+@keyframes kenBurns0 {
+  0%   { transform: scale(1.0) translate(0%, 0%); }
+  100% { transform: scale(1.1) translate(-2%, -1%); }
+}
+@keyframes kenBurns1 {
+  0%   { transform: scale(1.05) translate(1%, 0%); }
+  100% { transform: scale(1.0) translate(-1%, 1%); }
+}
+@keyframes kenBurns2 {
+  0%   { transform: scale(1.0) translate(-1%, 1%); }
+  100% { transform: scale(1.08) translate(1.5%, -0.5%); }
+}
+@keyframes kenBurns3 {
+  0%   { transform: scale(1.08) translate(0%, -1%); }
+  100% { transform: scale(1.0) translate(1%, 0.5%); }
+}
+@keyframes kenBurns4 {
+  0%   { transform: scale(1.0) translate(1%, 1%); }
+  100% { transform: scale(1.1) translate(-1%, -1%); }
+}
+
+.kb-0 { animation: kenBurns0 10s ease-in-out forwards; }
+.kb-1 { animation: kenBurns1 10s ease-in-out forwards; }
+.kb-2 { animation: kenBurns2 10s ease-in-out forwards; }
+.kb-3 { animation: kenBurns3 10s ease-in-out forwards; }
+.kb-4 { animation: kenBurns4 10s ease-in-out forwards; }
+
+@keyframes slideFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ───────────────────────────────────────────────
+   배경 슬라이드쇼 — 정가운데서 바깥으로 페이드아웃
+   @property로 CSS 변수 애니메이션 (Chrome 85+, Safari 16.4+, Firefox 128+)
+─────────────────────────────────────────────── */
+@property --radial-r {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
+}
+
+@keyframes radialFadeOut {
+  0%   { --radial-r: 0%;   }
+  100% { --radial-r: 160%; }
+}
+
+.bg-radial-fade-out {
+  animation: radialFadeOut 2.7s ease-in forwards;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent calc(var(--radial-r) - 8%),
+    black var(--radial-r)
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent calc(var(--radial-r) - 8%),
+    black var(--radial-r)
+  );
+}

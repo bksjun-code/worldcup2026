@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+
+# 환경변수 및 DB (보안 파일)
+backend/.env
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# 빌드 결과물
+frontend/dist/
+
+# 스크린샷 (개발용 임시 파일)
+*.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 로그
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
