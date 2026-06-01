@@ -26,7 +26,9 @@ frontend/node_modules/
 frontend/dist/
 
 # 스크린샷 (개발용 임시 파일)
-*.png
+/*.png
+/v_*.png
+/verify_*.png
 
 # IDE
 .vscode/
