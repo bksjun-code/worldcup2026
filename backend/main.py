@@ -23,7 +23,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:4173",
-        "https://*.github.io",
+        "https://bksjun-code.github.io",
         os.getenv("FRONTEND_URL", ""),
     ],
     allow_credentials=True,
