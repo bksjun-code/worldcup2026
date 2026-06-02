@@ -12,13 +12,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./worldcup.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-_is_sqlite = DATABASE_URL.startswith("sqlite")
-_is_oracle = DATABASE_URL.startswith("oracle") or os.getenv("DB_HOST")
+_is_oracle = DATABASE_URL.startswith("oracle") or bool(os.getenv("DB_HOST"))
 
-if _is_sqlite:
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-
-elif _is_oracle:
+if _is_oracle:
     import oracledb
 
     _host = os.getenv("DB_HOST", "")
@@ -42,8 +38,11 @@ elif _is_oracle:
         pool_recycle=600,
     )
 
+elif DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
 else:
-    # PostgreSQL (Railway 내장 또는 Supabase)
+    # PostgreSQL
     engine = create_engine(
         DATABASE_URL,
         pool_size=5,
