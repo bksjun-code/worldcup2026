@@ -70,14 +70,15 @@ function MatchBetCard({ match, myBet, onBetPlaced }) {
     setLoading(true)
     try {
       await api.post('/bets', { match_id: match.id, prediction, amount })
-      setSuccess(true)
-      await refreshUser()
-      onBetPlaced()
     } catch (err) {
       setError(err.response?.data?.detail || '베팅 실패')
-    } finally {
       setLoading(false)
+      return
     }
+    setSuccess(true)
+    setLoading(false)
+    await refreshUser()
+    onBetPlaced()
   }
 
   const handleEditBet = async () => {
@@ -87,14 +88,15 @@ function MatchBetCard({ match, myBet, onBetPlaced }) {
     setLoading(true)
     try {
       await api.put(`/bets/${myBet.id}`, { prediction, amount })
-      setEditMode(false)
-      await refreshUser()
-      onBetPlaced()
     } catch (err) {
       setError(err.response?.data?.detail || '수정 실패')
-    } finally {
       setLoading(false)
+      return
     }
+    setEditMode(false)
+    setLoading(false)
+    await refreshUser()
+    onBetPlaced()
   }
 
   const enterEditMode = () => {
