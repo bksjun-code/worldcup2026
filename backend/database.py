@@ -8,23 +8,48 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./worldcup.db")
 
-# Railway/Heroku는 postgres:// 를 반환하는데 SQLAlchemy 2.0은 postgresql:// 만 허용
+# Railway/Heroku postgres:// 호환
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 _is_sqlite = DATABASE_URL.startswith("sqlite")
+_is_oracle = DATABASE_URL.startswith("oracle") or os.getenv("DB_HOST")
 
 if _is_sqlite:
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+elif _is_oracle:
+    import oracledb
+
+    _host = os.getenv("DB_HOST", "")
+    _port = int(os.getenv("DB_PORT", "1522"))
+    _sid  = os.getenv("DB_SID", "")
+    _user = os.getenv("DB_USER", "")
+    _pw   = os.getenv("DB_PASSWORD", "")
+
+    # 풀 연결 생성 함수 — 특수문자 포함 비밀번호를 URL 인코딩 없이 안전하게 전달
+    _dsn = f"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={_host})(PORT={_port}))(CONNECT_DATA=(SID={_sid})))"
+
+    def _oracle_creator():
+        return oracledb.connect(user=_user, password=_pw, dsn=_dsn)
+
+    engine = create_engine(
+        "oracle+oracledb://",
+        creator=_oracle_creator,
+        pool_size=3,
+        max_overflow=2,
+        pool_pre_ping=True,
+        pool_recycle=600,
+    )
+
 else:
-    # 앱 시작 시 연결 풀을 미리 생성 — 매 요청마다 TCP/SSL 핸드셰이크 비용 제거
-    # Supabase Direct Connection(port 5432) 전용. Pooler URL(port 6543) 사용 시 NullPool 필요
+    # PostgreSQL (Railway 내장 또는 Supabase)
     engine = create_engine(
         DATABASE_URL,
-        pool_size=5,          # 상시 유지 연결 수
-        max_overflow=5,       # 순간 트래픽 시 추가 허용 연결 수
-        pool_pre_ping=True,   # 끊긴 연결 자동 감지 후 재연결
-        pool_recycle=300,     # 5분마다 연결 갱신 (Supabase idle timeout 대비)
+        pool_size=5,
+        max_overflow=5,
+        pool_pre_ping=True,
+        pool_recycle=300,
         connect_args={"connect_timeout": 10},
     )
 
