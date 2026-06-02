@@ -92,6 +92,8 @@ def update_bet(bet_id: int, data: BetUpdate, db: Session = Depends(get_db), curr
         raise HTTPException(status_code=400, detail="대기 중인 베팅만 수정할 수 있습니다")
 
     match = db.query(Match).filter(Match.id == bet.match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="경기를 찾을 수 없습니다")
     match_dt = match.match_date if match.match_date.tzinfo else match.match_date.replace(tzinfo=timezone.utc)
     if match_dt <= datetime.now(timezone.utc) + timedelta(hours=1):
         raise HTTPException(status_code=400, detail="경기 1시간 전부터는 베팅을 수정할 수 없습니다")

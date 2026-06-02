@@ -76,8 +76,8 @@ class Bet(Base):
     __tablename__ = "bets"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    match_id = Column(Integer, ForeignKey("matches.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    match_id = Column(Integer, ForeignKey("matches.id"), nullable=False, index=True)
     prediction = Column(Enum(BetPrediction), nullable=False)
     amount = Column(Integer, nullable=False)
     payout = Column(Integer)

@@ -59,7 +59,7 @@ function MatchBetCard({ match, myBet, onBetPlaced }) {
   const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
-    api.get(`/bets/odds/${match.id}`).then((r) => setOdds(r.data))
+    api.get(`/bets/odds/${match.id}`).then((r) => setOdds(r.data)).catch(() => {})
   }, [match.id, success])
 
   const handleBet = async () => {

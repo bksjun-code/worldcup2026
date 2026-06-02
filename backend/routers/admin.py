@@ -143,7 +143,13 @@ def reset_match_bets(
     if match.status == MatchStatus.FINISHED:
         raise HTTPException(status_code=400, detail="종료된 경기는 결과 초기화를 먼저 하세요")
 
-    bets = db.query(Bet).filter(Bet.match_id == match_id, Bet.status == BetStatus.PENDING).all()
+    from sqlalchemy.orm import joinedload
+    bets = (
+        db.query(Bet)
+        .options(joinedload(Bet.user))
+        .filter(Bet.match_id == match_id, Bet.status == BetStatus.PENDING)
+        .all()
+    )
     if not bets:
         raise HTTPException(status_code=400, detail="초기화할 베팅이 없습니다")
 
@@ -173,9 +179,10 @@ def finish_matches_by_date(
     except ValueError:
         raise HTTPException(status_code=400, detail="날짜 형식이 올바르지 않습니다 (YYYY-MM-DD)")
 
-    # DB에 저장된 match_date는 naive KST 시간이므로 변환 없이 하루 범위 사용
-    utc_start = kst_date
-    utc_end   = kst_date + timedelta(days=1)
+    # KST(UTC+9) 기준 날짜를 UTC로 변환하여 timezone-aware 범위 사용
+    KST_OFFSET = timedelta(hours=9)
+    utc_start = (kst_date - KST_OFFSET).replace(tzinfo=timezone.utc)
+    utc_end   = utc_start + timedelta(days=1)
 
     matches = (
         db.query(Match)
