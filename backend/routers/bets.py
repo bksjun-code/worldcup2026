@@ -62,7 +62,8 @@ def place_bet(data: BetCreate, db: Session = Depends(get_db), current_user: User
         raise HTTPException(status_code=404, detail="경기를 찾을 수 없습니다")
     if match.status != MatchStatus.UPCOMING:
         raise HTTPException(status_code=400, detail="이미 시작되었거나 종료된 경기입니다")
-    if match.match_date <= datetime.now(timezone.utc).replace(tzinfo=None):
+    match_dt = match.match_date if match.match_date.tzinfo else match.match_date.replace(tzinfo=timezone.utc)
+    if match_dt <= datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="경기 시작 시간이 지나 베팅할 수 없습니다")
 
     existing = db.query(Bet).filter(Bet.user_id == current_user.id, Bet.match_id == data.match_id).first()
@@ -91,8 +92,8 @@ def update_bet(bet_id: int, data: BetUpdate, db: Session = Depends(get_db), curr
         raise HTTPException(status_code=400, detail="대기 중인 베팅만 수정할 수 있습니다")
 
     match = db.query(Match).filter(Match.id == bet.match_id).first()
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
-    if match.match_date <= now + timedelta(hours=1):
+    match_dt = match.match_date if match.match_date.tzinfo else match.match_date.replace(tzinfo=timezone.utc)
+    if match_dt <= datetime.now(timezone.utc) + timedelta(hours=1):
         raise HTTPException(status_code=400, detail="경기 1시간 전부터는 베팅을 수정할 수 없습니다")
 
     diff = data.amount - bet.amount
