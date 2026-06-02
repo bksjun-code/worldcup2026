@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: worldcup-backend
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./worldcup.db
+      - key: ADMIN_EMAIL
+        value: admin@worldcup2026.com
+      - key: INITIAL_POINTS
+        value: "100000"
+      - key: FRONTEND_URL
+        value: https://bksjun-code.github.io
