@@ -8,6 +8,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./worldcup.db")
 
+# Railway/Heroku는 postgres:// 를 반환하는데 SQLAlchemy 2.0은 postgresql:// 만 허용
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 _is_sqlite = DATABASE_URL.startswith("sqlite")
 
 if _is_sqlite:
