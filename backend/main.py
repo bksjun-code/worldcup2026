@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 from dotenv import load_dotenv
 import os
 
-from database import engine, Base
+from database import engine, Base, get_db, DATABASE_URL
 from routers import auth, matches, bets, admin
 from seed_data import seed
 
@@ -48,3 +50,11 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/ping")
+def ping(db: Session = Depends(get_db)):
+    """Oracle 커넥션 웜업 — UptimeRobot 등으로 5분마다 호출 권장"""
+    sql = "SELECT 1 FROM DUAL" if not DATABASE_URL.startswith("sqlite") else "SELECT 1"
+    db.execute(text(sql))
+    return {"status": "ok", "db": "connected"}
