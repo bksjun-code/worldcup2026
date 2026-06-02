@@ -9,8 +9,11 @@ from seed_data import seed
 
 load_dotenv()
 
-Base.metadata.create_all(bind=engine)
-seed()
+try:
+    Base.metadata.create_all(bind=engine)
+    seed()
+except Exception as e:
+    print(f"[startup] DB 초기화 실패 (무시하고 계속): {e}")
 
 app = FastAPI(
     title="2026 FIFA World Cup API",
