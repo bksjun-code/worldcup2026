@@ -496,7 +496,7 @@ function MyBetsView({ myBets, matches, user, onRefresh }) {
   if (!user) return (
     <div className="text-center py-20">
       <p className="text-gray-500 text-sm mb-3">로그인 후 베팅 내역을 확인할 수 있습니다</p>
-      <a href="/worldcup2026/auth" className="btn-gold text-sm py-2 px-5 inline-block">로그인</a>
+      <a href="/auth" className="btn-gold text-sm py-2 px-5 inline-block">로그인</a>
     </div>
   )
 
