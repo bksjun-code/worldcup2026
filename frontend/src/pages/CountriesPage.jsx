@@ -1,17 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getFlagUrl } from '../utils/flags'
 import FifaBadge from '../components/FifaBadge'
 import CountryMapModal from '../components/CountryMapModal'
 
+// ── 국기 이미지 ─────────────────────────────────────────────────────────────
 function FlagImg({ name, emoji, size = 48 }) {
   const [failed, setFailed] = useState(false)
   const url = getFlagUrl(name)
   if (!url || failed) return <span style={{ fontSize: size * 0.7 }}>{emoji}</span>
   return (
     <img
-      src={url}
-      alt={name}
-      width={size}
+      src={url} alt={name} width={size}
       className="rounded object-cover shadow-md inline-block"
       style={{ height: Math.round(size * 0.67) }}
       onError={() => setFailed(true)}
@@ -19,14 +18,14 @@ function FlagImg({ name, emoji, size = 48 }) {
   )
 }
 
+// ── 상수 ─────────────────────────────────────────────────────────────────────
 const CONF_COLORS = {
-  UEFA:      { text: 'text-blue-400',   border: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
-  CONMEBOL:  { text: 'text-green-400',  border: '#4ade80', bg: 'rgba(74,222,128,0.12)' },
-  AFC:       { text: 'text-red-400',    border: '#f87171', bg: 'rgba(248,113,113,0.12)' },
-  CAF:       { text: 'text-yellow-400', border: '#facc15', bg: 'rgba(250,204,21,0.12)'  },
-  CONCACAF:  { text: 'text-purple-400', border: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  UEFA:     { text: 'text-blue-400',   border: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
+  CONMEBOL: { text: 'text-green-400',  border: '#4ade80', bg: 'rgba(74,222,128,0.12)' },
+  AFC:      { text: 'text-red-400',    border: '#f87171', bg: 'rgba(248,113,113,0.12)' },
+  CAF:      { text: 'text-yellow-400', border: '#facc15', bg: 'rgba(250,204,21,0.12)' },
+  CONCACAF: { text: 'text-purple-400', border: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
 }
-
 const CONF_KO = {
   '전체':    '전체',
   'UEFA':    'UEFA (유럽)',
@@ -35,7 +34,6 @@ const CONF_KO = {
   'CAF':     'CAF (아프리카)',
   'CONCACAF':'CONCACAF (북중미)',
 }
-
 const CONFEDERATIONS = ['전체', 'UEFA', 'CONMEBOL', 'AFC', 'CAF', 'CONCACAF']
 
 const TEAMS = [
@@ -89,6 +87,7 @@ const TEAMS = [
   { flag:'🇭🇳', name:'온두라스',      group:'K', confederation:'CONCACAF', fifa_rank:72, coach:'레이날도 루에다',     titles:0, players:['로마멜 페랄타','앤디 나헤라'],                  best_result:'16강 (2014)',              desc:'중미의 강자. 탄탄한 수비와 빠른 역습으로 이변을 노린다.' },
 ]
 
+// ── 상세 모달 ─────────────────────────────────────────────────────────────────
 function Modal({ team, onClose }) {
   const cc = CONF_COLORS[team.confederation] || { border: '#888', bg: 'rgba(128,128,128,0.1)' }
   const [showMap, setShowMap] = useState(false)
@@ -98,16 +97,11 @@ function Modal({ team, onClose }) {
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
       onClick={showMap ? undefined : onClose}
     >
-      <div
-        className="wc-card w-full max-w-md p-6 relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="wc-card w-full max-w-md p-6 relative" onClick={e => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors text-xl leading-none"
-        >
-          ✕
-        </button>
+        >✕</button>
 
         <div className="flex items-center gap-4 mb-5">
           <FlagImg name={team.name} emoji={team.flag} size={80} />
@@ -118,19 +112,14 @@ function Modal({ team, onClose }) {
                 onClick={() => setShowMap(true)}
                 className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white transition-colors"
                 style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                title="지도에서 보기"
-              >
-                📍 위치
-              </button>
+              >📍 위치</button>
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded"
                 style={{ background: cc.bg, color: cc.border, border: `1px solid ${cc.border}44` }}
-              >
-                {CONF_KO[team.confederation] || team.confederation}
-              </span>
-              <span className="text-xs text-white/30">Group {team.group}</span>
+              >{CONF_KO[team.confederation] || team.confederation}</span>
+              <span className="text-sm text-white/60">Group {team.group}</span>
               {team.titles > 0 && (
                 <span className="text-xs text-wc-gold">{'🏆'.repeat(Math.min(team.titles, 5))} {team.titles}회 우승</span>
               )}
@@ -153,14 +142,12 @@ function Modal({ team, onClose }) {
         <div className="mb-4">
           <div className="text-xs text-white/30 mb-2">주요 선수</div>
           <div className="flex flex-wrap gap-2">
-            {team.players.map((p) => (
+            {team.players.map(p => (
               <span
                 key={p}
                 className="text-sm px-3 py-1 rounded-full font-medium"
                 style={{ background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.22)', color: '#C8A84B' }}
-              >
-                ⭐ {p}
-              </span>
+              >⭐ {p}</span>
             ))}
           </div>
         </div>
@@ -178,111 +165,341 @@ function Modal({ team, onClose }) {
   )
 }
 
+// ── 캐러셀 ────────────────────────────────────────────────────────────────────
+const SLOTS = [-2, -1, 0, 1, 2]
+const CARD_OP = { 0: 1, 1: 0.80, 2: 0.48 }
+
+function useWindowWidth() {
+  const [w, setW] = useState(window.innerWidth)
+  useEffect(() => {
+    const fn = () => setW(window.innerWidth)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+  return w
+}
+
+function CountryCarousel({ teams, onSelect }) {
+  const N = teams.length
+  const [cur, setCur] = useState(0)
+  const [animDir, setAnimDir] = useState(null)
+  const touchX = useRef(null)
+  const ww = useWindowWidth()
+  const sm = ww < 640
+
+  // 카드 크기
+  const W = sm ? { 0: 144, 1: 108, 2: 78 } : { 0: 196, 1: 150, 2: 108 }
+  const H = sm ? { 0: 178, 1: 138, 2: 102 } : { 0: 236, 1: 185, 2: 138 }
+  const G01 = sm ? 10 : 14   // center↔side gap
+  const G12 = sm ? 8  : 10   // side↔far gap
+  const stageH = H[0] + 44
+
+  // 팀 목록이 바뀌면 인덱스 리셋
+  useEffect(() => { setCur(0); setAnimDir(null) }, [teams])
+
+  const navigate = useCallback((dir) => {
+    if (animDir !== null || N < 2) return
+    setAnimDir(dir)
+    setTimeout(() => {
+      setCur(c => ((c + dir) % N + N) % N)
+      setAnimDir(null)
+    }, 430)
+  }, [animDir, N])
+
+  // 키보드 지원
+  useEffect(() => {
+    const fn = (e) => {
+      if (e.key === 'ArrowLeft')  navigate(-1)
+      if (e.key === 'ArrowRight') navigate(1)
+    }
+    window.addEventListener('keydown', fn)
+    return () => window.removeEventListener('keydown', fn)
+  }, [navigate])
+
+  if (N === 0) return (
+    <div className="text-center py-20 text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>
+      검색 결과가 없습니다
+    </div>
+  )
+
+  const teamAt = offset => teams[((cur + offset) % N + N) % N]
+  const centerTeam = teamAt(0)
+  const cc = CONF_COLORS[centerTeam.confederation] || { border: '#888', bg: 'rgba(128,128,128,0.1)' }
+
+  // 슬롯 X 좌표 계산
+  const slotX = (offset) => {
+    const abs = Math.abs(offset), sign = offset > 0 ? 1 : -1
+    if (abs === 0) return 0
+    let x = W[0] / 2 + W[1] / 2 + G01
+    if (abs === 2) x += W[1] / 2 + W[2] / 2 + G12
+    return sign * x
+  }
+
+  // 슬롯별 스타일
+  const getSlotStyle = (slot) => {
+    const vis   = animDir !== null ? slot - animDir : slot
+    const shown = Math.abs(vis) <= 2
+    const a     = Math.min(Math.abs(vis), 2)
+    const w = W[a], h = H[a]
+    const x = shown ? slotX(vis) : (vis > 0 ? slotX(2) + W[2] + 20 : slotX(-2) - W[2] - 20)
+    return {
+      position: 'absolute',
+      width: w, height: h,
+      left:    `calc(50% + ${x}px - ${w / 2}px)`,
+      top:     `calc(50% - ${h / 2}px)`,
+      opacity: shown ? CARD_OP[a] : 0,
+      zIndex:  shown ? 10 - Math.abs(vis) * 3 : 0,
+      borderRadius: 12,
+      overflow: 'hidden',
+      cursor: slot !== 0 ? 'pointer' : 'default',
+      transition: animDir !== null
+        ? 'left 0.42s cubic-bezier(0.4,0,0.2,1), top 0.42s cubic-bezier(0.4,0,0.2,1), width 0.42s cubic-bezier(0.4,0,0.2,1), height 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.42s ease'
+        : 'none',
+      // 중앙→측면→끝 순으로 배경 점진 변화
+      background: a === 0
+        ? 'rgba(255,255,255,0.055)'
+        : a === 1 ? 'rgba(255,255,255,0.032)' : 'rgba(255,255,255,0.018)',
+      border: `1px solid ${a === 0 ? 'rgba(200,168,75,0.22)' : 'rgba(255,255,255,0.07)'}`,
+      backdropFilter: 'blur(24px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    }
+  }
+
+  const navBtn = (side) => ({
+    position: 'absolute',
+    top: '50%', transform: 'translateY(-50%)',
+    [side]: sm ? 4 : 10,
+    width: 30, height: 30, borderRadius: '50%',
+    background: 'rgba(255,255,255,0.09)',
+    border: '1px solid rgba(255,255,255,0.18)',
+    color: 'rgba(255,255,255,0.75)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', fontSize: 16, zIndex: 20, userSelect: 'none',
+    transition: 'background 0.15s',
+  })
+
+  return (
+    <div>
+      {/* ── 스테이지 ── */}
+      <div
+        className="relative"
+        style={{ height: stageH }}
+        onTouchStart={e => { touchX.current = e.touches[0].clientX }}
+        onTouchEnd={e => {
+          if (touchX.current === null) return
+          const dx = e.changedTouches[0].clientX - touchX.current
+          touchX.current = null
+          if (Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1)
+        }}
+      >
+        <button style={navBtn('left')}  onClick={() => navigate(-1)} aria-label="이전">‹</button>
+        <button style={navBtn('right')} onClick={() => navigate(1)}  aria-label="다음">›</button>
+
+        {SLOTS.map(slot => {
+          const team    = teamAt(slot)
+          const visOff  = animDir !== null ? slot - animDir : slot
+          const absVis  = Math.min(Math.abs(visOff), 2)
+          const isCenter = slot === 0
+          const flagSz  = absVis === 0 ? (sm ? 52 : 64) : absVis === 1 ? (sm ? 36 : 44) : (sm ? 26 : 32)
+          const nameSz  = absVis === 0 ? (sm ? 14 : 16) : absVis === 1 ? (sm ? 12 : 13) : (sm ? 10 : 11)
+          const tcc     = CONF_COLORS[team.confederation] || { border: '#888', bg: 'rgba(128,128,128,0.1)' }
+
+          return (
+            <div
+              key={slot}
+              style={getSlotStyle(slot)}
+              onClick={!isCenter ? () => navigate(slot > 0 ? 1 : -1) : () => onSelect(team)}
+            >
+              <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 px-2 select-none">
+                {/* 국기 */}
+                <FlagImg name={team.name} emoji={team.flag} size={flagSz} />
+
+                {/* 국가명 */}
+                <div
+                  className="font-semibold text-center leading-tight"
+                  style={{ fontSize: nameSz, color: '#e8e8ee' }}
+                >
+                  {team.name}
+                </div>
+
+                {/* Group 표시 (±1 이내) */}
+                {absVis <= 1 && (
+                  <div style={{ fontSize: absVis === 0 ? 11 : 10, color: 'rgba(200,168,75,0.9)' }}>
+                    Group {team.group}
+                  </div>
+                )}
+
+                {/* 중앙 카드 전용 배지 */}
+                {absVis === 0 && (
+                  <>
+                    <div className="flex gap-1 flex-wrap justify-center mt-0.5">
+                      <span
+                        className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                        style={{ background: tcc.bg, color: tcc.border, border: `1px solid ${tcc.border}44` }}
+                      >{CONF_KO[team.confederation] || team.confederation}</span>
+                      <FifaBadge name={team.name} />
+                    </div>
+                    {team.titles > 0 && (
+                      <div style={{ fontSize: 11, color: '#C8A84B', letterSpacing: 1 }}>
+                        {'🏆'.repeat(Math.min(team.titles, 5))}
+                      </div>
+                    )}
+                    <div
+                      className="mt-1 text-[10px] px-3 py-0.5 rounded-full"
+                      style={{ background: 'rgba(200,168,75,0.12)', border: '1px solid rgba(200,168,75,0.28)', color: 'rgba(200,168,75,0.9)' }}
+                    >자세히 보기</div>
+                  </>
+                )}
+
+                {/* 측면 카드 FIFA 랭킹 */}
+                {absVis === 1 && (
+                  <FifaBadge name={team.name} />
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── 위치 표시 + 프로그레스 바 ── */}
+      <div className="flex flex-col items-center gap-2 mt-3 mb-5">
+        <div className="text-xs" style={{ color: 'rgba(255,255,255,0.32)' }}>
+          <span style={{ color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>{cur + 1}</span>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}> / {N}</span>
+        </div>
+        <div className="rounded-full overflow-hidden" style={{ width: 100, height: 2, background: 'rgba(255,255,255,0.08)' }}>
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${(cur + 1) / N * 100}%`, background: 'rgba(200,168,75,0.6)', transition: 'width 0.3s ease' }}
+          />
+        </div>
+      </div>
+
+      {/* ── 인포 바 ── */}
+      <div
+        className="rounded-2xl p-4"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        <div className="flex items-start gap-3">
+          {/* 국기 */}
+          <div className="flex-shrink-0 mt-0.5">
+            <FlagImg name={centerTeam.name} emoji={centerTeam.flag} size={sm ? 40 : 52} />
+          </div>
+
+          {/* 텍스트 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="font-bebas text-lg text-white tracking-wide">{centerTeam.name}</span>
+              <span
+                className="text-xs font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: cc.bg, color: cc.border, border: `1px solid ${cc.border}44` }}
+              >{CONF_KO[centerTeam.confederation] || centerTeam.confederation}</span>
+              <span style={{ fontSize: 11, color: 'rgba(200,168,75,0.85)' }}>Group {centerTeam.group}</span>
+              {centerTeam.titles > 0 && (
+                <span className="text-xs text-wc-gold">{centerTeam.titles}회 우승 🏆</span>
+              )}
+            </div>
+
+            <p className="text-xs leading-relaxed mb-2.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              {centerTeam.desc}
+            </p>
+
+            <div className="flex flex-wrap gap-1.5">
+              {centerTeam.players.map(p => (
+                <span
+                  key={p}
+                  className="text-xs px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(200,168,75,0.10)', border: '1px solid rgba(200,168,75,0.22)', color: '#C8A84B' }}
+                >⭐ {p}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* 자세히 버튼 */}
+          <button
+            onClick={() => onSelect(centerTeam)}
+            className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg transition-all hover:brightness-110"
+            style={{ background: 'rgba(200,168,75,0.15)', border: '1px solid rgba(200,168,75,0.35)', color: '#C8A84B' }}
+          >자세히</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 메인 페이지 ───────────────────────────────────────────────────────────────
 export default function CountriesPage() {
   const [selected,   setSelected]   = useState(null)
   const [confFilter, setConfFilter] = useState('전체')
-  const [search,     setSearch]     = useState('')
-  const [sortBy,     setSortBy]     = useState('group') // 'group' | 'rank'
+  const [sortBy,     setSortBy]     = useState('group')
 
   const filtered = TEAMS
-    .filter((t) => {
-      const mc = confFilter === '전체' || t.confederation === confFilter
-      const ms = !search || t.name.includes(search) || t.players.some((p) => p.includes(search))
-      return mc && ms
-    })
+    .filter(t => confFilter === '전체' || t.confederation === confFilter)
     .sort((a, b) => sortBy === 'rank' ? a.fifa_rank - b.fifa_rank : 0)
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-3xl mx-auto">
 
+        {/* 헤더 */}
         <div className="text-center mb-8">
           <h1 className="font-bebas font-black text-4xl md:text-5xl text-wc-gold tracking-widest mb-1">
             참가국 소개
           </h1>
-          <p className="text-white/30 text-sm">48개국 · 카드를 클릭하면 자세한 정보를 확인할 수 있습니다</p>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            48개국 · ‹ › 버튼 또는 키보드 ←→ 로 탐색 · 카드 클릭으로 상세 정보
+          </p>
         </div>
 
-        {/* 검색 + 필터 */}
-        <div className="space-y-3 mb-6">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="🔍 국가명 또는 선수명 검색..."
-            className="glass-input w-full max-w-md px-4 py-2.5 text-sm block mx-auto"
-          />
-          {/* 연맹 필터 */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {CONFEDERATIONS.map((c) => (
-              <button
-                key={c}
-                onClick={() => setConfFilter(c)}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-                style={
-                  confFilter === c
-                    ? { background: '#C8A84B', color: '#07090F' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.45)' }
-                }
-              >
-                {CONF_KO[c]} ({c === '전체' ? TEAMS.length : TEAMS.filter((t) => t.confederation === c).length})
-              </button>
-            ))}
+        {/* 필터 + 정렬 */}
+        <div className="flex items-center justify-center gap-3 mb-8 flex-wrap">
+          {/* 대륙 선택 */}
+          <div className="relative">
+            <select
+              value={confFilter}
+              onChange={e => setConfFilter(e.target.value)}
+              className="appearance-none text-sm pl-4 pr-9 py-2.5 rounded-xl outline-none cursor-pointer font-medium"
+              style={{
+                background: confFilter === '전체' ? 'rgba(255,255,255,0.06)' : 'rgba(200,168,75,0.12)',
+                border: `1px solid ${confFilter === '전체' ? 'rgba(255,255,255,0.13)' : 'rgba(200,168,75,0.4)'}`,
+                color: confFilter === '전체' ? 'rgba(255,255,255,0.6)' : '#C8A84B',
+                minWidth: 190,
+              }}
+            >
+              {CONFEDERATIONS.map(c => (
+                <option key={c} value={c} style={{ background: '#0c1220', color: '#e8e8ee' }}>
+                  {CONF_KO[c]} ({c === '전체' ? TEAMS.length : TEAMS.filter(t => t.confederation === c).length})
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px]"
+              style={{ color: confFilter === '전체' ? 'rgba(255,255,255,0.35)' : 'rgba(200,168,75,0.7)' }}>▼</span>
           </div>
+
+          {/* 구분선 */}
+          <div className="w-px h-6" style={{ background: 'rgba(255,255,255,0.1)' }} />
+
           {/* 정렬 */}
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-xs text-white/30">정렬:</span>
-            {[{ v: 'group', l: '📋 조별순' }, { v: 'rank', l: '🏆 FIFA 랭킹순' }].map(({ v, l }) => (
+          <div className="flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+            {[{ v: 'group', l: '조별순', icon: '📋' }, { v: 'rank', l: '랭킹순', icon: '🏆' }].map(({ v, l, icon }) => (
               <button
                 key={v}
                 onClick={() => setSortBy(v)}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+                className="px-3.5 py-2.5 text-xs font-semibold transition-all"
                 style={
                   sortBy === v
-                    ? { background: 'rgba(200,168,75,0.2)', border: '1px solid rgba(200,168,75,0.5)', color: '#C8A84B' }
-                    : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }
+                    ? { background: 'rgba(200,168,75,0.18)', color: '#C8A84B', borderRight: v === 'group' ? '1px solid rgba(255,255,255,0.1)' : 'none' }
+                    : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.38)', borderRight: v === 'group' ? '1px solid rgba(255,255,255,0.1)' : 'none' }
                 }
               >
-                {l}
+                <span className="mr-1">{icon}</span>{l}
               </button>
             ))}
           </div>
         </div>
 
-        {/* 카드 그리드 */}
-        {filtered.length === 0 ? (
-          <div className="text-center text-white/25 py-20 text-sm">검색 결과가 없습니다</div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {filtered.map((team) => {
-              const cc = CONF_COLORS[team.confederation] || { border: '#888', bg: 'rgba(128,128,128,0.1)' }
-              return (
-                <button
-                  key={team.name}
-                  onClick={() => setSelected(team)}
-                  className="wc-card p-4 text-center hover:scale-105 transition-all duration-200 group"
-                  style={{ border: `1px solid ${cc.border}22` }}
-                >
-                  <div className="mb-2 flex justify-center group-hover:scale-110 transition-transform">
-                    <FlagImg name={team.name} emoji={team.flag} size={56} />
-                  </div>
-                  <div className="font-semibold text-white text-xs leading-tight mb-1">{team.name}</div>
-                  <div className="text-[10px] text-white/30">Group {team.group}</div>
-                  <div
-                    className="text-[9px] font-semibold mt-1.5 px-1.5 py-0.5 rounded inline-block"
-                    style={{ background: cc.bg, color: cc.border }}
-                  >
-                    {CONF_KO[team.confederation] || team.confederation}
-                  </div>
-                  <FifaBadge name={team.name} className="mt-1" />
-                  {team.titles > 0 && (
-                    <div className="text-[10px] text-wc-gold mt-1">{'🏆'.repeat(Math.min(team.titles, 4))}</div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
+        {/* 캐러셀 */}
+        <CountryCarousel teams={filtered} onSelect={setSelected} />
       </div>
 
       {selected && <Modal team={selected} onClose={() => setSelected(null)} />}

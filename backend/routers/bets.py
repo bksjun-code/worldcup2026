@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, case
 from typing import List
 from datetime import datetime, timezone, timedelta
 
@@ -119,3 +119,92 @@ def get_my_bets(db: Session = Depends(get_db), current_user: User = Depends(get_
 def get_leaderboard(db: Session = Depends(get_db)):
     users = db.query(User).filter(User.is_admin == False).order_by(User.points.desc()).limit(20).all()
     return [{"rank": i + 1, "nickname": u.nickname, "points": u.points} for i, u in enumerate(users)]
+
+
+@router.get("/rankings")
+def get_rankings(limit: int = 100, db: Session = Depends(get_db)):
+    """포인트 순위 + 베팅 통계 (공개)"""
+    rows = (
+        db.query(
+            User.id,
+            User.nickname,
+            User.points,
+            func.count(Bet.id).label("bet_count"),
+            func.coalesce(func.sum(case((Bet.status == BetStatus.WON,     1), else_=0)), 0).label("won"),
+            func.coalesce(func.sum(case((Bet.status == BetStatus.LOST,    1), else_=0)), 0).label("lost"),
+            func.coalesce(func.sum(case((Bet.status == BetStatus.PENDING, 1), else_=0)), 0).label("pending"),
+            func.coalesce(func.sum(Bet.amount), 0).label("total_bet"),
+            func.coalesce(func.sum(
+                case(
+                    (Bet.status == BetStatus.WON,  Bet.payout - Bet.amount),
+                    (Bet.status == BetStatus.LOST, -Bet.amount),
+                    else_=0,
+                )
+            ), 0).label("net_profit"),
+        )
+        .outerjoin(Bet, Bet.user_id == User.id)
+        .filter(User.is_admin == False)
+        .group_by(User.id, User.nickname, User.points)
+        .order_by(User.points.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "rank": i + 1, "id": r.id, "nickname": r.nickname,
+            "points": r.points, "bet_count": r.bet_count,
+            "won": r.won, "lost": r.lost, "pending": r.pending,
+            "total_bet": r.total_bet, "net_profit": r.net_profit,
+        }
+        for i, r in enumerate(rows)
+    ]
+
+
+@router.get("/rankings/{user_id}")
+def get_ranking_user_detail(user_id: int, db: Session = Depends(get_db)):
+    """특정 유저 베팅 내역 공개 조회"""
+    user = db.query(User).filter(User.id == user_id, User.is_admin == False).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다")
+
+    bets = (
+        db.query(Bet, Match)
+        .join(Match, Bet.match_id == Match.id)
+        .filter(Bet.user_id == user_id)
+        .order_by(Match.match_date.desc())
+        .all()
+    )
+
+    total_bet    = sum(b.amount for b, _ in bets)
+    total_payout = sum(b.payout or 0 for b, _ in bets if b.status == BetStatus.WON)
+    net_profit   = sum(
+        (b.payout - b.amount) if b.status == BetStatus.WON else
+        (-b.amount)            if b.status == BetStatus.LOST else 0
+        for b, _ in bets
+    )
+
+    return {
+        "user": {"id": user.id, "nickname": user.nickname, "points": user.points},
+        "summary": {
+            "total_bet": total_bet, "total_payout": total_payout, "net_profit": net_profit,
+            "won":     sum(1 for b, _ in bets if b.status == BetStatus.WON),
+            "lost":    sum(1 for b, _ in bets if b.status == BetStatus.LOST),
+            "pending": sum(1 for b, _ in bets if b.status == BetStatus.PENDING),
+        },
+        "bets": [
+            {
+                "match_id":   m.id,
+                "group_name": m.group_name,
+                "home_team":  m.home_team, "away_team":   m.away_team,
+                "home_flag":  m.home_flag, "away_flag":   m.away_flag,
+                "match_date": m.match_date.isoformat(),
+                "match_status": m.status.value,
+                "home_score": m.home_score, "away_score": m.away_score,
+                "prediction": b.prediction.value,
+                "amount":     b.amount,
+                "bet_status": b.status.value,
+                "payout":     b.payout,
+            }
+            for b, m in bets
+        ],
+    }

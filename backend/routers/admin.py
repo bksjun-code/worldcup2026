@@ -70,15 +70,24 @@ def _settle_bets(db: Session, match: Match):
             bet.user.points += bet.amount
         return
 
-    for bet in bets:
-        if bet.prediction == winning_side:
+    winning_bets = [b for b in bets if b.prediction == winning_side]
+    losing_bets  = [b for b in bets if b.prediction != winning_side]
+
+    total_distributed = 0
+    for i, bet in enumerate(winning_bets):
+        if i < len(winning_bets) - 1:
             payout = int((bet.amount / winning_pool) * net_pool)
-            bet.payout = payout
-            bet.status = BetStatus.WON
-            bet.user.points += payout
         else:
-            bet.payout = 0
-            bet.status = BetStatus.LOST
+            # 마지막 승자에게 잔여 포인트 전부 배분 (int 내림으로 인한 소각 방지)
+            payout = int(net_pool) - total_distributed
+        bet.payout = payout
+        bet.status = BetStatus.WON
+        bet.user.points += payout
+        total_distributed += payout
+
+    for bet in losing_bets:
+        bet.payout = 0
+        bet.status = BetStatus.LOST
 
 
 @router.delete("/matches/{match_id}/result", response_model=MatchResponse)

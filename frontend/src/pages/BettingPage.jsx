@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
 import useStore from '../store/useStore'
@@ -310,30 +310,177 @@ function MatchBetCard({ match, myBet, onBetPlaced }) {
   )
 }
 
-function Leaderboard() {
-  const [board, setBoard] = useState([])
-
-  useEffect(() => {
-    api.get('/bets/leaderboard').then((r) => setBoard(r.data))
-  }, [])
-
-  if (board.length === 0) return null
+// ── 네비게이션 프리뷰 카드 ────────────────────────────────────────────────
+function MatchPreview({ match, dir, onClick }) {
+  const isFinished = match.status === 'finished'
+  const isOngoing  = match.status === 'ongoing'
+  const dateStr    = new Date(match.match_date).toLocaleDateString('ko-KR', {
+    timeZone: 'Asia/Seoul', month: 'short', day: 'numeric',
+  })
 
   return (
-    <div className="wc-card p-5">
-      <h3 className="font-bebas text-xl text-wc-gold tracking-wider mb-4">🏆 포인트 랭킹</h3>
-      <div className="space-y-2">
-        {board.slice(0, 10).map((u) => (
-          <div key={u.rank} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-            <div className="flex items-center gap-3">
-              <span className={`font-bebas text-lg w-6 text-center ${
-                u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-gray-300' : u.rank === 3 ? 'text-orange-400' : 'text-gray-500'
-              }`}>{u.rank}</span>
-              <span className="text-sm text-white">{u.nickname}</span>
-            </div>
-            <span className="text-wc-gold font-bold text-sm">{u.points.toLocaleString()}P</span>
+    <button
+      onClick={onClick}
+      className="bet-nav-btn flex-1 rounded-2xl p-4 text-left cursor-pointer"
+    >
+      {/* 방향 레이블 + 화살표 */}
+      <div className={`flex items-center gap-2 mb-3 ${dir === 1 ? 'justify-end' : ''}`}>
+        {dir === -1 && (
+          <div
+            className="bet-nav-arrow w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all"
+            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >◀</div>
+        )}
+        <span
+          className="bet-nav-label text-xs font-bold tracking-wide transition-colors"
+          style={{ color: 'rgba(255,255,255,0.4)' }}
+        >
+          {dir === -1 ? '이전 경기' : '다음 경기'}
+        </span>
+        {dir === 1 && (
+          <div
+            className="bet-nav-arrow w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all"
+            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >▶</div>
+        )}
+      </div>
+
+      {/* 팀 정보 */}
+      <div className="flex items-center justify-center gap-3 mb-3">
+        <div className="flex flex-col items-center gap-1 min-w-0">
+          <FlagImg name={match.home_team} emoji={match.home_flag} size={30} />
+          <span className="text-xs font-semibold text-white text-center leading-tight w-16 truncate">
+            {match.home_team}
+          </span>
+        </div>
+        <span className="text-sm font-bold flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          {isFinished ? `${match.home_score}:${match.away_score}` : 'vs'}
+        </span>
+        <div className="flex flex-col items-center gap-1 min-w-0">
+          <FlagImg name={match.away_team} emoji={match.away_flag} size={30} />
+          <span className="text-xs font-semibold text-white text-center leading-tight w-16 truncate">
+            {match.away_team}
+          </span>
+        </div>
+      </div>
+
+      {/* 메타 정보 */}
+      <div className={`flex items-center gap-1.5 flex-wrap ${dir === 1 ? 'justify-end' : ''}`}>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+          isFinished ? 'bg-green-900/50 text-green-400' :
+          isOngoing  ? 'bg-red-700/70 text-white'       :
+          'bg-white/8 text-gray-400'
+        }`}>
+          {isFinished ? '종료' : isOngoing ? '🔴 LIVE' : '예정'}
+        </span>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)' }}>
+          Group {match.group_name} · {dateStr}
+        </span>
+      </div>
+    </button>
+  )
+}
+
+// ── 베팅 카드 캐러셀 ──────────────────────────────────────────────────────
+function BettingCarousel({ filtered, resetKey, getMyBet, onBetPlaced }) {
+  const N = filtered.length
+  const [cur, setCur]           = useState(0)
+  const [enterDir, setEnterDir] = useState(0) // 1=오른쪽에서 진입, -1=왼쪽에서
+  const touchX = useRef(null)
+
+  useEffect(() => { setCur(0); setEnterDir(0) }, [resetKey])
+
+  const navigate = useCallback((dir) => {
+    if (N < 2) return
+    setEnterDir(dir)
+    setCur(c => ((c + dir) % N + N) % N)
+  }, [N])
+
+  useEffect(() => {
+    const fn = (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return
+      if (e.key === 'ArrowLeft')  navigate(-1)
+      if (e.key === 'ArrowRight') navigate(1)
+    }
+    window.addEventListener('keydown', fn)
+    return () => window.removeEventListener('keydown', fn)
+  }, [navigate])
+
+  if (N === 0) return (
+    <div className="text-center text-gray-500 py-20">해당하는 경기가 없습니다</div>
+  )
+
+  const matchAt = (o) => filtered[((cur + o) % N + N) % N]
+  const center    = matchAt(0)
+  const prevMatch = N > 1 ? matchAt(-1) : null
+  const nextMatch = N > 1 ? matchAt(1)  : null
+
+  return (
+    <div
+      onTouchStart={e => { touchX.current = e.touches[0].clientX }}
+      onTouchEnd={e => {
+        if (touchX.current === null) return
+        const dx = e.changedTouches[0].clientX - touchX.current
+        touchX.current = null
+        if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1)
+      }}
+    >
+      {/* 메인 카드 */}
+      <div
+        key={`${cur}-${center.id}`}
+        style={{
+          animation: enterDir !== 0
+            ? `${enterDir > 0 ? 'betSlideInRight' : 'betSlideInLeft'} 0.35s ease`
+            : 'none',
+        }}
+      >
+        <MatchBetCard
+          match={center}
+          myBet={getMyBet(center.id)}
+          onBetPlaced={onBetPlaced}
+        />
+      </div>
+
+      {/* 네비게이션 */}
+      <div className="mt-5 space-y-3">
+        {/* 진행 바 */}
+        <div className="flex items-center gap-3 px-1">
+          <div
+            className="flex-1 rounded-full overflow-hidden"
+            style={{ height: 3, background: 'rgba(255,255,255,0.07)' }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-400"
+              style={{
+                width: `${(cur + 1) / N * 100}%`,
+                background: 'linear-gradient(90deg, rgba(200,168,75,0.55), rgba(200,168,75,0.9))',
+              }}
+            />
           </div>
-        ))}
+          <span className="flex-shrink-0 text-sm font-bold" style={{ color: 'rgba(255,255,255,0.4)', minWidth: 52, textAlign: 'right' }}>
+            <span style={{ color: '#C8A84B', fontSize: 16 }}>{cur + 1}</span>
+            <span style={{ color: 'rgba(255,255,255,0.22)', fontSize: 13 }}> / {N}</span>
+          </span>
+        </div>
+
+        {/* 이전 / 다음 카드 버튼 */}
+        {N > 1 && (
+          <div className="flex gap-3">
+            {prevMatch
+              ? <MatchPreview match={prevMatch} dir={-1} onClick={() => navigate(-1)} />
+              : <div className="flex-1" />
+            }
+            {nextMatch
+              ? <MatchPreview match={nextMatch} dir={1}  onClick={() => navigate(1)} />
+              : <div className="flex-1" />
+            }
+          </div>
+        )}
+
+        {/* 조작 힌트 */}
+        <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>
+          키보드 ← → · 터치 스와이프 · 카드를 클릭하면 이동
+        </p>
       </div>
     </div>
   )
@@ -459,6 +606,10 @@ function MyBetsView({ myBets, matches, user, onRefresh }) {
 }
 
 const GROUPS = ['전체', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+const GROUP_OPTIONS = [
+  { value: '전체', label: '전체 조' },
+  ...['A','B','C','D','E','F','G','H','I','J','K','L'].map(g => ({ value: g, label: `Group ${g}` })),
+]
 const STATUS_FILTERS = [
   { v: 'all',      l: '전체' },
   { v: 'upcoming', l: '예정' },
@@ -491,8 +642,9 @@ export default function BettingPage() {
   useEffect(() => { fetchData() }, [user])
 
   const filtered = matches.filter((m) => {
-    const groupOk = groupFilter === '전체' || m.group_name === groupFilter
-    const statusOk = statusFilter === 'all' || m.status === statusFilter
+    if (m.stage !== 'group') return false   // 예선전만 베팅 가능
+    const groupOk  = groupFilter === '전체' || m.group_name === groupFilter
+    const statusOk = statusFilter === 'all'  || m.status === statusFilter
     return groupOk && statusOk
   })
 
@@ -538,91 +690,63 @@ export default function BettingPage() {
 
         {/* 경기 목록 뷰 */}
         {view === 'matches' && (
-        <div>
+          <div className="max-w-2xl mx-auto">
+            {/* 필터 바 */}
+            <div className="flex items-center gap-3 mb-6">
+              {/* 조 선택 드롭다운 */}
+              <div className="relative flex-1">
+                <select
+                  value={groupFilter}
+                  onChange={e => setGroupFilter(e.target.value)}
+                  className="w-full appearance-none glass-input pl-3 pr-8 py-2 text-sm cursor-pointer"
+                >
+                  {GROUP_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value} style={{ background: '#0c0e1a' }}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}>▼</span>
+              </div>
 
-        {/* 그룹 필터 */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {GROUPS.map((g) => (
-            <button
-              key={g}
-              onClick={() => setGroupFilter(g)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                groupFilter === g
-                  ? 'bg-wc-gold text-black'
-                  : 'text-gray-400 hover:border-wc-gold/40'
-              }`}
-              style={groupFilter !== g ? {background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)'} : {}}
-            >
-              {g === '전체' ? g : `Group ${g}`}
-            </button>
-          ))}
-        </div>
+              {/* 상태 선택 드롭다운 */}
+              <div className="relative flex-1">
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="w-full appearance-none glass-input pl-3 pr-8 py-2 text-sm cursor-pointer"
+                >
+                  {STATUS_FILTERS.map(({ v, l }) => (
+                    <option key={v} value={v} style={{ background: '#0c0e1a' }}>
+                      {l} ({filtered.length > 0 || v === 'all'
+                        ? matches.filter(m => m.stage === 'group' && (v === 'all' || m.status === v)).length
+                        : 0}건)
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}>▼</span>
+              </div>
 
-        {/* 상태 필터 */}
-        <div className="flex gap-1.5 mb-6">
-          {STATUS_FILTERS.map(({ v, l }) => (
-            <button
-              key={v}
-              onClick={() => setStatusFilter(v)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                statusFilter === v
-                  ? 'bg-white/20 text-white'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-              style={statusFilter !== v ? {background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)'} : {border:'1px solid rgba(255,255,255,0.2)'}}
-            >
-              {l} ({matches.filter((m) => v === 'all' || m.status === v).length})
-            </button>
-          ))}
-        </div>
+              {/* 현재 필터 결과 수 */}
+              <span className="text-xs flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                {filtered.length}경기
+              </span>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 경기 목록 */}
-          <div className="lg:col-span-2 space-y-6">
+            {/* 캐러셀 */}
             {loading ? (
               <div className="text-center text-gray-500 py-20">로딩 중...</div>
-            ) : filtered.length === 0 ? (
-              <div className="text-center text-gray-500 py-20">해당하는 경기가 없습니다</div>
             ) : (
-              filtered.map((m) => (
-                <MatchBetCard key={m.id} match={m} myBet={getMyBet(m.id)} onBetPlaced={fetchData} />
-              ))
+              <BettingCarousel
+                filtered={filtered}
+                resetKey={`${groupFilter}-${statusFilter}`}
+                getMyBet={getMyBet}
+                onBetPlaced={fetchData}
+              />
             )}
           </div>
-
-          {/* 사이드: 내 베팅 내역 + 랭킹 */}
-          <div className="space-y-6">
-            {user && myBets.length > 0 && (
-              <div className="wc-card p-5">
-                <h3 className="font-bebas text-xl text-wc-gold tracking-wider mb-3">내 베팅 내역</h3>
-                <div className="space-y-2">
-                  {myBets.map((b) => {
-                    const m = matches.find((x) => x.id === b.match_id)
-                    return (
-                      <div key={b.id} className="text-xs flex justify-between items-center py-1.5 border-b border-white/5 last:border-0 gap-2">
-                        <span className="flex items-center gap-0.5 flex-shrink-0">
-                          {m && <FlagImg name={m.home_team} emoji={m.home_flag} size={16} />}
-                          {m && <FlagImg name={m.away_team} emoji={m.away_flag} size={16} />}
-                        </span>
-                        <span className={
-                          b.status === 'won'      ? 'text-green-400' :
-                          b.status === 'lost'     ? 'text-red-400' :
-                          b.status === 'refunded' ? 'text-gray-500' :
-                          'text-gray-400'
-                        }>
-                          {b.prediction === 'home' ? '홈 승' : b.prediction === 'draw' ? '무' : '원정 승'}
-                        </span>
-                        <span className="text-white whitespace-nowrap">{b.amount.toLocaleString()}P</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-            <Leaderboard />
-          </div>
-        </div>
-        </div>
         )}
       </div>
     </div>

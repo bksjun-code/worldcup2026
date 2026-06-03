@@ -7,18 +7,14 @@ const NAV_LINKS = [
   { path: '/schedule', label: '대진표' },
   { path: '/countries', label: '참가국' },
   { path: '/betting', label: '🏆 베팅' },
+  { path: '/rankings', label: '📊 포인트순위' },
 ]
 
 const THEMES = [
-  { id: 'dark',    label: '🌑 다크',      color: '#1B3D6E' },
-  { id: 'ocean',   label: '🌊 오션',      color: '#0E7490' },
-  { id: 'forest',  label: '🌲 포레스트',  color: '#166534' },
-  { id: 'purple',  label: '🔮 퍼플',      color: '#6B21A8' },
-  { id: 'sunset',  label: '🌅 선셋',      color: '#C2410C' },
-  { id: 'crimson', label: '🩸 크림슨',    color: '#9B1C2E' },
-  { id: 'slate',   label: '🩶 슬레이트',  color: '#475569' },
-  { id: 'rose',    label: '🌸 로즈',      color: '#9D174D' },
-  { id: 'gold',    label: '✨ 골드',      color: '#92620A' },
+  { id: 'pure-dark',   label: '⬛ 퓨어 다크',      color: '#1a1a1a' },
+  { id: 'dark-navy',   label: '🌌 다크 네이비',    color: '#1e3a6e' },
+  { id: 'github-dark', label: '🐙 GitHub 다크',    color: '#30363D' },
+  { id: 'glass',       label: '🔮 글래스모피즘',   color: '#6B48C8' },
 ]
 
 function ThemeSwitcher() {
@@ -32,30 +28,30 @@ function ThemeSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
-        style={{background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)'}}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors"
+        style={{background:'var(--switcher-bg)', border:'1px solid var(--switcher-border)'}}
       >
         <span
           className="w-3 h-3 rounded-full flex-shrink-0"
           style={{ background: current.color }}
         />
-        <span>{current.label}</span>
-        <span className="text-gray-500" style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: 'var(--text-secondary)' }}>{current.label}</span>
+        <span style={{ fontSize: 9, color: 'var(--text-secondary)', opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full mt-2 z-50 rounded-xl py-1 min-w-[140px] overflow-hidden"
-            style={{background:'rgba(10,12,22,0.92)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}
+            className="absolute right-0 top-full mt-2 z-50 rounded-xl py-1 min-w-[160px] overflow-hidden"
+            style={{background:'var(--dropdown-bg)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid var(--dropdown-border)', boxShadow:'var(--dropdown-shadow)'}}
           >
             {THEMES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => { setTheme(t.id); setOpen(false) }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors hover:bg-white/8"
-                style={{ color: theme === t.id ? '#fff' : 'rgba(255,255,255,0.6)', background: theme === t.id ? 'rgba(255,255,255,0.08)' : 'transparent' }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors"
+                style={{ color: theme === t.id ? 'var(--dropdown-text-active)' : 'var(--dropdown-text)', background: theme === t.id ? 'var(--dropdown-item-active)' : 'transparent' }}
               >
                 <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: t.color }} />
                 <span>{t.label}</span>
@@ -75,7 +71,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className="fixed top-0 w-full z-50 border-b" style={{background:'rgba(5,5,12,0.45)', backdropFilter:'blur(32px) saturate(180%)', WebkitBackdropFilter:'blur(32px) saturate(180%)', borderColor:'rgba(255,255,255,0.08)', boxShadow:'0 1px 0 rgba(255,215,0,0.06), 0 4px 24px rgba(0,0,0,0.3)'}}>
+    <nav className="fixed top-0 w-full z-50 border-b" style={{background:'var(--nav-bg)', backdropFilter:'blur(32px) saturate(180%)', WebkitBackdropFilter:'blur(32px) saturate(180%)', borderColor:'var(--nav-border)', boxShadow:'0 1px 0 rgba(200,168,75,0.06), 0 4px 24px rgba(0,0,0,0.12)'}}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* 로고 */}
         <Link to="/" className="flex items-center gap-2">
@@ -127,7 +123,7 @@ export default function Navbar() {
 
       {/* 모바일 드롭다운 */}
       {open && (
-        <div className="md:hidden border-t px-4 py-4 flex flex-col gap-3" style={{background:'rgba(5,5,12,0.6)', backdropFilter:'blur(32px)', borderColor:'rgba(255,255,255,0.08)'}}>
+        <div className="md:hidden border-t px-4 py-4 flex flex-col gap-3" style={{background:'var(--nav-mobile-bg)', backdropFilter:'blur(32px)', WebkitBackdropFilter:'blur(32px)', borderColor:'var(--nav-border)'}}>
           {NAV_LINKS.map((l) => (
             <Link key={l.path} to={l.path} className="text-gray-300 hover:text-wc-gold" onClick={() => setOpen(false)}>
               {l.label}

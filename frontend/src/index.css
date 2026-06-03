@@ -2,50 +2,144 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── 1. 퓨어 다크 (기본) — 순흑 OLED ── */
 :root {
-  --bg: #07090F;
-  --card-tint: rgba(255,255,255,0.035);
-  --card-tint-hover: rgba(255,255,255,0.06);
+  --bg: #000000;
+  --card-tint: rgba(255,255,255,0.030);
+  --card-tint-hover: rgba(255,255,255,0.055);
+  --text-primary: #E8E8EE;
+  --text-secondary: rgba(232,232,238,0.55);
+  --nav-bg: rgba(0,0,0,0.72);
+  --nav-border: rgba(255,255,255,0.07);
+  --nav-mobile-bg: rgba(0,0,0,0.92);
+  --dropdown-bg: rgba(14,14,14,0.96);
+  --dropdown-border: rgba(255,255,255,0.09);
+  --dropdown-shadow: 0 8px 32px rgba(0,0,0,0.75);
+  --dropdown-item-active: rgba(255,255,255,0.07);
+  --dropdown-text: rgba(232,232,238,0.55);
+  --dropdown-text-active: #E8E8EE;
+  --switcher-bg: rgba(255,255,255,0.05);
+  --switcher-border: rgba(255,255,255,0.09);
+  --card-border: rgba(255,255,255,0.065);
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  --card-inner: inset 0 1px 0 rgba(255,255,255,0.05);
+  --card-hover-border: rgba(200,168,75,0.22);
+  --card-hover-shadow: 0 12px 48px rgba(0,0,0,0.75), 0 0 20px rgba(200,168,75,0.05);
+  --card-hover-inner: inset 0 1px 0 rgba(255,255,255,0.09);
+  --input-bg: rgba(255,255,255,0.035);
+  --input-border: rgba(255,255,255,0.08);
+  --input-text: #E8E8EE;
+  --input-placeholder: rgba(232,232,238,0.22);
+  --input-focus-border: rgba(200,168,75,0.42);
+  --input-focus-shadow: 0 0 0 3px rgba(200,168,75,0.07);
+  --input-focus-bg: rgba(255,255,255,0.06);
+  --scrollbar-thumb: rgba(255,255,255,0.14);
+  --scrollbar-thumb-hover: rgba(255,255,255,0.28);
 }
-[data-theme="ocean"] {
-  --bg: #050D12;
-  --card-tint: rgba(0,180,210,0.04);
-  --card-tint-hover: rgba(0,180,210,0.08);
+
+/* ── 2. 다크 네이비 — 딥블루 기반 ── */
+[data-theme="dark-navy"] {
+  --bg: #0A0E1A;
+  --card-tint: rgba(50,100,220,0.06);
+  --card-tint-hover: rgba(50,100,220,0.10);
+  --text-primary: #DCE4F5;
+  --text-secondary: rgba(220,228,245,0.55);
+  --nav-bg: rgba(7,10,22,0.78);
+  --nav-border: rgba(50,100,220,0.14);
+  --nav-mobile-bg: rgba(7,10,22,0.96);
+  --dropdown-bg: rgba(10,15,34,0.97);
+  --dropdown-border: rgba(50,100,220,0.18);
+  --dropdown-shadow: 0 8px 32px rgba(0,5,20,0.65);
+  --dropdown-item-active: rgba(50,100,220,0.12);
+  --dropdown-text: rgba(220,228,245,0.55);
+  --dropdown-text-active: #DCE4F5;
+  --switcher-bg: rgba(50,100,220,0.09);
+  --switcher-border: rgba(50,100,220,0.18);
+  --card-border: rgba(50,100,220,0.14);
+  --card-shadow: 0 8px 32px rgba(0,5,20,0.55);
+  --card-inner: inset 0 1px 0 rgba(50,100,220,0.09);
+  --card-hover-border: rgba(200,168,75,0.28);
+  --card-hover-shadow: 0 12px 48px rgba(0,5,20,0.65), 0 0 20px rgba(200,168,75,0.06);
+  --card-hover-inner: inset 0 1px 0 rgba(50,100,220,0.14);
+  --input-bg: rgba(50,100,220,0.055);
+  --input-border: rgba(50,100,220,0.16);
+  --input-text: #DCE4F5;
+  --input-placeholder: rgba(220,228,245,0.22);
+  --input-focus-border: rgba(100,155,255,0.5);
+  --input-focus-shadow: 0 0 0 3px rgba(100,155,255,0.09);
+  --input-focus-bg: rgba(50,100,220,0.09);
+  --scrollbar-thumb: rgba(50,100,220,0.32);
+  --scrollbar-thumb-hover: rgba(50,100,220,0.55);
 }
-[data-theme="forest"] {
-  --bg: #060F08;
-  --card-tint: rgba(30,180,80,0.04);
-  --card-tint-hover: rgba(30,180,80,0.08);
+
+/* ── 3. GitHub 다크 — 중간톤 + 경계선 강조 ── */
+[data-theme="github-dark"] {
+  --bg: #0D1117;
+  --card-tint: rgba(22,27,34,0.96);
+  --card-tint-hover: rgba(30,37,46,0.98);
+  --text-primary: #E6EDF3;
+  --text-secondary: rgba(230,237,243,0.52);
+  --nav-bg: rgba(13,17,23,0.97);
+  --nav-border: rgba(48,54,61,0.9);
+  --nav-mobile-bg: rgba(13,17,23,1);
+  --dropdown-bg: rgba(22,27,34,0.99);
+  --dropdown-border: rgba(48,54,61,0.85);
+  --dropdown-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --dropdown-item-active: rgba(48,54,61,0.7);
+  --dropdown-text: rgba(230,237,243,0.52);
+  --dropdown-text-active: #E6EDF3;
+  --switcher-bg: rgba(33,38,45,0.9);
+  --switcher-border: rgba(48,54,61,0.85);
+  --card-border: rgba(48,54,61,0.85);
+  --card-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  --card-inner: inset 0 0 0 0 transparent;
+  --card-hover-border: rgba(88,166,255,0.45);
+  --card-hover-shadow: 0 8px 24px rgba(0,0,0,0.55);
+  --card-hover-inner: inset 0 0 0 0 transparent;
+  --input-bg: rgba(13,17,23,0.85);
+  --input-border: rgba(48,54,61,0.85);
+  --input-text: #E6EDF3;
+  --input-placeholder: rgba(230,237,243,0.3);
+  --input-focus-border: rgba(88,166,255,0.65);
+  --input-focus-shadow: 0 0 0 3px rgba(88,166,255,0.12);
+  --input-focus-bg: rgba(13,17,23,1);
+  --scrollbar-thumb: rgba(48,54,61,0.9);
+  --scrollbar-thumb-hover: rgba(80,90,100,0.9);
 }
-[data-theme="purple"] {
-  --bg: #09070F;
-  --card-tint: rgba(140,80,220,0.05);
-  --card-tint-hover: rgba(140,80,220,0.09);
-}
-[data-theme="sunset"] {
-  --bg: #0F0A05;
-  --card-tint: rgba(220,120,30,0.04);
-  --card-tint-hover: rgba(220,120,30,0.08);
-}
-[data-theme="crimson"] {
-  --bg: #0F0508;
-  --card-tint: rgba(200,30,60,0.04);
-  --card-tint-hover: rgba(200,30,60,0.08);
-}
-[data-theme="slate"] {
-  --bg: #0A0C10;
-  --card-tint: rgba(100,120,160,0.05);
-  --card-tint-hover: rgba(100,120,160,0.09);
-}
-[data-theme="rose"] {
-  --bg: #0F070D;
-  --card-tint: rgba(220,60,140,0.04);
-  --card-tint-hover: rgba(220,60,140,0.08);
-}
-[data-theme="gold"] {
-  --bg: #0C0A04;
-  --card-tint: rgba(200,168,75,0.05);
-  --card-tint-hover: rgba(200,168,75,0.10);
+
+/* ── 4. 글래스모피즘 — 반투명 블러 오버레이 ── */
+[data-theme="glass"] {
+  --bg: linear-gradient(135deg, #0F0C29 0%, #302B63 45%, #1A1A3E 100%) fixed;
+  --card-tint: rgba(255,255,255,0.085);
+  --card-tint-hover: rgba(255,255,255,0.145);
+  --text-primary: #F0F0FF;
+  --text-secondary: rgba(240,240,255,0.6);
+  --nav-bg: rgba(15,12,41,0.52);
+  --nav-border: rgba(255,255,255,0.13);
+  --nav-mobile-bg: rgba(20,18,50,0.88);
+  --dropdown-bg: rgba(30,26,60,0.90);
+  --dropdown-border: rgba(255,255,255,0.16);
+  --dropdown-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  --dropdown-item-active: rgba(255,255,255,0.11);
+  --dropdown-text: rgba(240,240,255,0.6);
+  --dropdown-text-active: #F0F0FF;
+  --switcher-bg: rgba(255,255,255,0.09);
+  --switcher-border: rgba(255,255,255,0.18);
+  --card-border: rgba(255,255,255,0.16);
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  --card-inner: inset 0 1px 0 rgba(255,255,255,0.14);
+  --card-hover-border: rgba(200,168,75,0.38);
+  --card-hover-shadow: 0 12px 48px rgba(0,0,0,0.55), 0 0 24px rgba(200,168,75,0.09);
+  --card-hover-inner: inset 0 1px 0 rgba(255,255,255,0.22);
+  --input-bg: rgba(255,255,255,0.075);
+  --input-border: rgba(255,255,255,0.16);
+  --input-text: #F0F0FF;
+  --input-placeholder: rgba(240,240,255,0.3);
+  --input-focus-border: rgba(200,168,75,0.52);
+  --input-focus-shadow: 0 0 0 3px rgba(200,168,75,0.11);
+  --input-focus-bg: rgba(255,255,255,0.11);
+  --scrollbar-thumb: rgba(255,255,255,0.22);
+  --scrollbar-thumb-hover: rgba(255,255,255,0.40);
 }
 
 * {
@@ -55,8 +149,8 @@
 }
 
 body {
-  background-color: var(--bg);
-  color: #e8e8ee;
+  background: var(--bg);
+  color: var(--text-primary);
   font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
   overflow-x: hidden;
@@ -66,9 +160,9 @@ body {
 
 /* 스크롤바 */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-::-webkit-scrollbar-thumb { background: rgba(200,168,75,0.35); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(200,168,75,0.6); }
+::-webkit-scrollbar-track { background: rgba(128,128,128,0.06); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 /* ───────────────────────────────────────────────
    글로우 유틸리티 (차분한 강도)
@@ -84,20 +178,15 @@ body {
   background: var(--card-tint);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--card-shadow), var(--card-inner);
   transition: all 0.3s ease;
 }
 .wc-card:hover {
   background: var(--card-tint-hover);
-  border-color: rgba(200, 168, 75, 0.2);
-  box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(200, 168, 75, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow), var(--card-hover-inner);
   transform: translateY(-2px);
 }
 
@@ -105,20 +194,20 @@ body {
    글래스 인풋
 ─────────────────────────────────────────────── */
 .glass-input {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--input-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: #e8e8ee;
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
   border-radius: 10px;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
-.glass-input::placeholder { color: rgba(255,255,255,0.2); }
+.glass-input::placeholder { color: var(--input-placeholder); }
 .glass-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(200, 168, 75, 0.4);
-  box-shadow: 0 0 0 3px rgba(200,168,75,0.07);
+  background: var(--input-focus-bg);
+  border-color: var(--input-focus-border);
+  box-shadow: var(--input-focus-shadow);
 }
 
 /* ───────────────────────────────────────────────
@@ -173,6 +262,35 @@ body {
   100% { transform: scale(1.1) translate(-1%, -1%); }
 }
 
+/* 베팅 네비게이션 카드 */
+.bet-nav-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.bet-nav-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(200,168,75,0.35);
+  transform: translateY(-1px);
+}
+.bet-nav-btn:active { transform: translateY(0); }
+.bet-nav-btn:hover .bet-nav-arrow {
+  background: rgba(200,168,75,0.18);
+  color: #C8A84B;
+  border-color: rgba(200,168,75,0.4);
+}
+.bet-nav-btn:hover .bet-nav-label { color: #C8A84B; }
+
+/* 베팅 카드 슬라이드 */
+@keyframes betSlideInRight {
+  from { transform: translateX(60px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes betSlideInLeft {
+  from { transform: translateX(-60px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
 .kb-0 { animation: kenBurns0 10s ease-in-out forwards; }
 .kb-1 { animation: kenBurns1 10s ease-in-out forwards; }
 .kb-2 { animation: kenBurns2 10s ease-in-out forwards; }
@@ -215,4 +333,34 @@ body {
     transparent calc(var(--radial-r) - 8%),
     black var(--radial-r)
   );
+}
+
+/* ───────────────────────────────────────────────
+   테마별 카드 오버라이드
+─────────────────────────────────────────────── */
+
+/* GitHub 다크: 솔리드 패널 스타일 (backdrop-filter 제거) */
+[data-theme="github-dark"] .wc-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--card-tint);
+}
+[data-theme="github-dark"] .wc-card:hover {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--card-tint-hover);
+}
+[data-theme="github-dark"] .glass-input {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 글래스모피즘: 블러 강화 */
+[data-theme="glass"] .wc-card {
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+}
+[data-theme="glass"] .glass-input {
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }

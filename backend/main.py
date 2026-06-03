@@ -5,7 +5,7 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 import os
 
-from database import engine, Base, get_db, DATABASE_URL
+from database import engine, Base, get_db
 from routers import auth, matches, bets, admin
 from seed_data import seed
 
@@ -54,7 +54,5 @@ def health():
 
 @app.get("/ping")
 def ping(db: Session = Depends(get_db)):
-    """Oracle 커넥션 웜업 — UptimeRobot 등으로 5분마다 호출 권장"""
-    sql = "SELECT 1 FROM DUAL" if not DATABASE_URL.startswith("sqlite") else "SELECT 1"
-    db.execute(text(sql))
+    db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "connected"}

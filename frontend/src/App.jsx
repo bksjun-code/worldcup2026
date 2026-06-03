@@ -7,62 +7,33 @@ import CountriesPage from './pages/CountriesPage'
 import BettingPage from './pages/BettingPage'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
+import RankingsPage from './pages/RankingsPage'
 import useStore from './store/useStore'
 
 const THEME_ORBS = {
-  dark: [
-    'bg-wc-blue/15 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-wc-red/10 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-wc-gold/7 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-purple-900/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
+  'pure-dark': [
+    'bg-zinc-700/8 -top-32 -left-32 w-[520px] h-[520px] blur-[150px]',
+    'bg-neutral-600/6 top-1/3 -right-40 w-[400px] h-[400px] blur-[130px]',
+    'bg-wc-gold/5 bottom-0 left-1/4 w-[500px] h-[500px] blur-[150px]',
+    'bg-zinc-800/5 top-2/3 right-1/4 w-[300px] h-[300px] blur-[110px]',
   ],
-  ocean: [
-    'bg-cyan-700/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-teal-600/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-sky-700/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-blue-900/15 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
+  'dark-navy': [
+    'bg-blue-900/30 -top-32 -left-32 w-[520px] h-[520px] blur-[130px]',
+    'bg-indigo-800/22 top-1/3 -right-40 w-[400px] h-[400px] blur-[110px]',
+    'bg-blue-700/14 bottom-0 left-1/4 w-[520px] h-[520px] blur-[130px]',
+    'bg-slate-700/18 top-2/3 right-1/4 w-[300px] h-[300px] blur-[90px]',
   ],
-  forest: [
-    'bg-green-800/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-emerald-700/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-green-600/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-teal-900/15 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
+  'github-dark': [
+    'bg-gray-700/15 -top-32 -left-32 w-[520px] h-[520px] blur-[140px]',
+    'bg-blue-900/10 top-1/3 -right-40 w-[400px] h-[400px] blur-[120px]',
+    'bg-gray-600/8 bottom-0 left-1/4 w-[520px] h-[520px] blur-[140px]',
+    'bg-slate-800/12 top-2/3 right-1/4 w-[300px] h-[300px] blur-[100px]',
   ],
-  purple: [
-    'bg-purple-800/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-violet-700/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-indigo-600/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-fuchsia-900/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
-  ],
-  sunset: [
-    'bg-orange-700/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-amber-600/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-red-700/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-yellow-900/12 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
-  ],
-  crimson: [
-    'bg-red-800/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-rose-700/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-red-600/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-orange-900/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
-  ],
-  slate: [
-    'bg-slate-600/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-blue-800/12 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-slate-500/8 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-gray-700/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
-  ],
-  rose: [
-    'bg-pink-700/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-rose-600/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-fuchsia-700/10 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-pink-900/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
-  ],
-  gold: [
-    'bg-yellow-700/20 -top-32 -left-32 w-[480px] h-[480px] blur-[130px]',
-    'bg-amber-600/15 top-1/3 -right-40 w-[380px] h-[380px] blur-[110px]',
-    'bg-wc-gold/12 bottom-0 left-1/4 w-[480px] h-[480px] blur-[130px]',
-    'bg-orange-800/10 top-2/3 right-1/4 w-[280px] h-[280px] blur-[90px]',
+  'glass': [
+    'bg-violet-700/35 -top-32 -left-32 w-[600px] h-[600px] blur-[120px]',
+    'bg-indigo-600/28 top-1/3 -right-40 w-[500px] h-[500px] blur-[100px]',
+    'bg-purple-800/22 bottom-0 left-1/4 w-[580px] h-[580px] blur-[120px]',
+    'bg-blue-700/20 top-2/3 right-1/4 w-[360px] h-[360px] blur-[90px]',
   ],
 }
 
@@ -78,10 +49,10 @@ export default function App() {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
-  const orbs = THEME_ORBS[theme] ?? THEME_ORBS.dark
+  const orbs = THEME_ORBS[theme] ?? THEME_ORBS['pure-dark']
 
   return (
-    <div className="min-h-screen bg-wc-dark">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* 전역 배경 Orb */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {orbs.map((cls, i) => (
@@ -96,6 +67,7 @@ export default function App() {
         <Route path="/betting" element={<BettingPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/rankings" element={<RankingsPage />} />
       </Routes>
     </div>
   )

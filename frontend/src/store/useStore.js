@@ -7,7 +7,7 @@ const useStore = create(
     (set, get) => ({
       user: null,
       token: null,
-      theme: 'dark',
+      theme: 'pure-dark',
       setTheme: (theme) => set({ theme }),
 
       login: async (email, password) => {
