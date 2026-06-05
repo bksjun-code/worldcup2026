@@ -552,7 +552,7 @@ export default function RankingsPage() {
   const [selected, setSelected]     = useState(null) // { id, rank, nickname, ... }
 
   useEffect(() => {
-    api.get('/bets/rankings?limit=100')
+    api.get('/bets/rankings')
       .then(r => { setRankings(r.data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])

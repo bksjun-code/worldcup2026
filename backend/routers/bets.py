@@ -122,7 +122,7 @@ def get_leaderboard(db: Session = Depends(get_db)):
 
 
 @router.get("/rankings")
-def get_rankings(limit: int = 100, db: Session = Depends(get_db)):
+def get_rankings(db: Session = Depends(get_db)):
     """포인트 순위 + 베팅 통계 (공개)"""
     rows = (
         db.query(
@@ -146,7 +146,6 @@ def get_rankings(limit: int = 100, db: Session = Depends(get_db)):
         .filter(User.is_admin == False)
         .group_by(User.id, User.nickname, User.points)
         .order_by(User.points.desc())
-        .limit(limit)
         .all()
     )
     return [
