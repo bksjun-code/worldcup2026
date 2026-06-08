@@ -6,8 +6,9 @@ from sqlalchemy import func, case
 from typing import List
 
 from database import get_db
-from models import Match, Bet, User, MatchStatus, MatchStage, BetPrediction, BetStatus
+from models import Match, Bet, User, MatchStatus, MatchStage, BetPrediction, BetStatus, SimulatorSettings
 from schemas.match import MatchResponse, MatchResultInput
+from schemas.simulator import SimulatorSettingsResponse, SimulatorSettingsUpdate
 from auth import get_current_admin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -366,7 +367,7 @@ def get_match_bets(
         raise HTTPException(status_code=404, detail="경기를 찾을 수 없습니다")
 
     bets = (
-        db.query(Bet, User.nickname)
+        db.query(Bet, User.nickname, User.national)
         .join(User, Bet.user_id == User.id)
         .filter(Bet.match_id == match_id)
         .order_by(Bet.amount.desc())
@@ -402,12 +403,13 @@ def get_match_bets(
         "bets": [
             {
                 "nickname":   nick,
+                "national":   national,
                 "prediction": bet.prediction.value,
                 "amount":     bet.amount,
                 "status":     bet.status.value,
                 "payout":     bet.payout,
             }
-            for bet, nick in bets
+            for bet, nick, national in bets
         ],
     }
 
@@ -440,7 +442,7 @@ def get_user_bets(
 
     return {
         "user": {
-            "id": user.id, "nickname": user.nickname,
+            "id": user.id, "nickname": user.nickname, "national": user.national,
             "email": user.email, "points": user.points,
         },
         "summary": {
@@ -478,6 +480,7 @@ def get_user_bet_summary(
         db.query(
             User.id,
             User.nickname,
+            User.national,
             User.email,
             User.points,
             func.count(Bet.id).label("bet_count"),
@@ -510,7 +513,7 @@ def get_user_bet_summary(
     )
     return [
         {
-            "id": r.id, "nickname": r.nickname, "email": r.email,
+            "id": r.id, "nickname": r.nickname, "national": r.national, "email": r.email,
             "points": r.points, "bet_count": r.bet_count,
             "total_bet": r.total_bet, "total_payout": r.total_payout,
             "net_profit": r.net_profit,
@@ -611,3 +614,34 @@ def get_point_stats(db: Session = Depends(get_db), _: User = Depends(get_current
         "min_points":      min_points,
         "avg_points":      avg_points,
     }
+
+
+def _get_or_create_simulator_settings(db: Session) -> SimulatorSettings:
+    settings = db.query(SimulatorSettings).filter(SimulatorSettings.id == 1).first()
+    if not settings:
+        settings = SimulatorSettings(id=1)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+@router.get("/simulator-settings", response_model=SimulatorSettingsResponse)
+def get_simulator_settings(db: Session = Depends(get_db), _: User = Depends(get_current_admin)):
+    return _get_or_create_simulator_settings(db)
+
+
+@router.put("/simulator-settings", response_model=SimulatorSettingsResponse)
+def update_simulator_settings(
+    data: SimulatorSettingsUpdate,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_admin),
+):
+    settings = _get_or_create_simulator_settings(db)
+    settings.signup_enabled = data.signup_enabled
+    settings.signup_interval_sec = data.signup_interval_sec
+    settings.board_enabled = data.board_enabled
+    settings.board_interval_sec = data.board_interval_sec
+    db.commit()
+    db.refresh(settings)
+    return settings

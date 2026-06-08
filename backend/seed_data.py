@@ -2,7 +2,17 @@
 2026 FIFA 월드컵 초기 경기 데이터 시드
 실행: python seed_data.py
 """
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from sqlalchemy import text
+
+KST = timezone(timedelta(hours=9))
+
+
+def to_kst_naive(date_str: str) -> datetime:
+    """UTC ISO 문자열을 KST 벽시계 시각의 naive datetime으로 변환.
+    SQLite는 타임존 정보를 보존하지 못하므로, 저장값 자체를 KST로 맞춘다."""
+    return datetime.fromisoformat(date_str.replace("Z", "+00:00")).astimezone(KST).replace(tzinfo=None)
+
 from database import SessionLocal, engine, Base
 from models import Match, MatchStage, MatchStatus, User
 from auth import hash_password
@@ -29,157 +39,157 @@ GROUP_MATCHES = [
      "date": "2026-06-25T01:00:00Z", "venue": "Estadio Akron", "city": "과달라하라", "group": "A", "korea": False},
 
     # ── Group B ────────────────────────────────────────────────────────
-    {"home": "미국", "away": "캐나다", "home_f": "🇺🇸", "away_f": "🇨🇦",
+    {"home": "캐나다", "away": "보스니아·헤르체고비나", "home_f": "🇨🇦", "away_f": "🇧🇦",
      "date": "2026-06-12T23:00:00Z", "venue": "SoFi Stadium", "city": "LA", "group": "B", "korea": False},
-    {"home": "우루과이", "away": "파나마", "home_f": "🇺🇾", "away_f": "🇵🇦",
+    {"home": "카타르", "away": "스위스", "home_f": "🇶🇦", "away_f": "🇨🇭",
      "date": "2026-06-13T02:00:00Z", "venue": "AT&T Stadium", "city": "댈러스", "group": "B", "korea": False},
-    {"home": "미국", "away": "우루과이", "home_f": "🇺🇸", "away_f": "🇺🇾",
+    {"home": "캐나다", "away": "카타르", "home_f": "🇨🇦", "away_f": "🇶🇦",
      "date": "2026-06-19T23:00:00Z", "venue": "MetLife Stadium", "city": "뉴저지", "group": "B", "korea": False},
-    {"home": "캐나다", "away": "파나마", "home_f": "🇨🇦", "away_f": "🇵🇦",
+    {"home": "보스니아·헤르체고비나", "away": "스위스", "home_f": "🇧🇦", "away_f": "🇨🇭",
      "date": "2026-06-20T02:00:00Z", "venue": "BC Place", "city": "밴쿠버", "group": "B", "korea": False},
-    {"home": "미국", "away": "파나마", "home_f": "🇺🇸", "away_f": "🇵🇦",
+    {"home": "캐나다", "away": "스위스", "home_f": "🇨🇦", "away_f": "🇨🇭",
      "date": "2026-06-25T23:00:00Z", "venue": "Levi's Stadium", "city": "샌프란시스코", "group": "B", "korea": False},
-    {"home": "캐나다", "away": "우루과이", "home_f": "🇨🇦", "away_f": "🇺🇾",
+    {"home": "보스니아·헤르체고비나", "away": "카타르", "home_f": "🇧🇦", "away_f": "🇶🇦",
      "date": "2026-06-26T02:00:00Z", "venue": "BMO Field", "city": "토론토", "group": "B", "korea": False},
 
     # ── Group C ────────────────────────────────────────────────────────
-    {"home": "스페인", "away": "모로코", "home_f": "🇪🇸", "away_f": "🇲🇦",
+    {"home": "브라질", "away": "모로코", "home_f": "🇧🇷", "away_f": "🇲🇦",
      "date": "2026-06-13T22:00:00Z", "venue": "Hard Rock Stadium", "city": "마이애미", "group": "C", "korea": False},
-    {"home": "포르투갈", "away": "카메룬", "home_f": "🇵🇹", "away_f": "🇨🇲",
+    {"home": "아이티", "away": "스코틀랜드", "home_f": "🇭🇹", "away_f": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
      "date": "2026-06-14T01:00:00Z", "venue": "Lincoln Financial Field", "city": "필라델피아", "group": "C", "korea": False},
-    {"home": "스페인", "away": "포르투갈", "home_f": "🇪🇸", "away_f": "🇵🇹",
+    {"home": "브라질", "away": "아이티", "home_f": "🇧🇷", "away_f": "🇭🇹",
      "date": "2026-06-20T22:00:00Z", "venue": "Arrowhead Stadium", "city": "캔자스시티", "group": "C", "korea": False},
-    {"home": "모로코", "away": "카메룬", "home_f": "🇲🇦", "away_f": "🇨🇲",
+    {"home": "모로코", "away": "스코틀랜드", "home_f": "🇲🇦", "away_f": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
      "date": "2026-06-21T01:00:00Z", "venue": "Gillette Stadium", "city": "보스턴", "group": "C", "korea": False},
-    {"home": "스페인", "away": "카메룬", "home_f": "🇪🇸", "away_f": "🇨🇲",
+    {"home": "브라질", "away": "스코틀랜드", "home_f": "🇧🇷", "away_f": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
      "date": "2026-06-26T22:00:00Z", "venue": "Rose Bowl", "city": "LA", "group": "C", "korea": False},
-    {"home": "포르투갈", "away": "모로코", "home_f": "🇵🇹", "away_f": "🇲🇦",
+    {"home": "모로코", "away": "아이티", "home_f": "🇲🇦", "away_f": "🇭🇹",
      "date": "2026-06-27T01:00:00Z", "venue": "Allegiant Stadium", "city": "라스베이거스", "group": "C", "korea": False},
 
     # ── Group D ────────────────────────────────────────────────────────
-    {"home": "브라질", "away": "크로아티아", "home_f": "🇧🇷", "away_f": "🇭🇷",
+    {"home": "미국", "away": "파라과이", "home_f": "🇺🇸", "away_f": "🇵🇾",
      "date": "2026-06-14T22:00:00Z", "venue": "Estadio Azteca", "city": "멕시코시티", "group": "D", "korea": False},
-    {"home": "아르헨티나", "away": "칠레", "home_f": "🇦🇷", "away_f": "🇨🇱",
+    {"home": "호주", "away": "터키", "home_f": "🇦🇺", "away_f": "🇹🇷",
      "date": "2026-06-15T01:00:00Z", "venue": "NRG Stadium", "city": "휴스턴", "group": "D", "korea": False},
-    {"home": "브라질", "away": "아르헨티나", "home_f": "🇧🇷", "away_f": "🇦🇷",
+    {"home": "미국", "away": "호주", "home_f": "🇺🇸", "away_f": "🇦🇺",
      "date": "2026-06-21T22:00:00Z", "venue": "Lumen Field", "city": "시애틀", "group": "D", "korea": False},
-    {"home": "크로아티아", "away": "칠레", "home_f": "🇭🇷", "away_f": "🇨🇱",
+    {"home": "파라과이", "away": "터키", "home_f": "🇵🇾", "away_f": "🇹🇷",
      "date": "2026-06-22T01:00:00Z", "venue": "Estadio Jalisco", "city": "과달라하라", "group": "D", "korea": False},
-    {"home": "브라질", "away": "칠레", "home_f": "🇧🇷", "away_f": "🇨🇱",
+    {"home": "미국", "away": "터키", "home_f": "🇺🇸", "away_f": "🇹🇷",
      "date": "2026-06-25T22:00:00Z", "venue": "Hard Rock Stadium", "city": "마이애미", "group": "D", "korea": False},
-    {"home": "아르헨티나", "away": "크로아티아", "home_f": "🇦🇷", "away_f": "🇭🇷",
+    {"home": "파라과이", "away": "호주", "home_f": "🇵🇾", "away_f": "🇦🇺",
      "date": "2026-06-26T01:00:00Z", "venue": "MetLife Stadium", "city": "뉴저지", "group": "D", "korea": False},
 
     # ── Group E ────────────────────────────────────────────────────────
-    {"home": "프랑스", "away": "세네갈", "home_f": "🇫🇷", "away_f": "🇸🇳",
+    {"home": "독일", "away": "퀴라소", "home_f": "🇩🇪", "away_f": "🇨🇼",
      "date": "2026-06-15T22:00:00Z", "venue": "AT&T Stadium", "city": "댈러스", "group": "E", "korea": False},
-    {"home": "잉글랜드", "away": "튀니지", "home_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away_f": "🇹🇳",
+    {"home": "코트디부아르", "away": "에콰도르", "home_f": "🇨🇮", "away_f": "🇪🇨",
      "date": "2026-06-16T01:00:00Z", "venue": "SoFi Stadium", "city": "LA", "group": "E", "korea": False},
-    {"home": "프랑스", "away": "잉글랜드", "home_f": "🇫🇷", "away_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    {"home": "독일", "away": "코트디부아르", "home_f": "🇩🇪", "away_f": "🇨🇮",
      "date": "2026-06-22T22:00:00Z", "venue": "Lincoln Financial Field", "city": "필라델피아", "group": "E", "korea": False},
-    {"home": "세네갈", "away": "튀니지", "home_f": "🇸🇳", "away_f": "🇹🇳",
+    {"home": "퀴라소", "away": "에콰도르", "home_f": "🇨🇼", "away_f": "🇪🇨",
      "date": "2026-06-23T01:00:00Z", "venue": "Estadio Azteca", "city": "멕시코시티", "group": "E", "korea": False},
-    {"home": "프랑스", "away": "튀니지", "home_f": "🇫🇷", "away_f": "🇹🇳",
+    {"home": "독일", "away": "에콰도르", "home_f": "🇩🇪", "away_f": "🇪🇨",
      "date": "2026-06-25T22:00:00Z", "venue": "BC Place", "city": "밴쿠버", "group": "E", "korea": False},
-    {"home": "잉글랜드", "away": "세네갈", "home_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away_f": "🇸🇳",
+    {"home": "퀴라소", "away": "코트디부아르", "home_f": "🇨🇼", "away_f": "🇨🇮",
      "date": "2026-06-26T01:00:00Z", "venue": "BMO Field", "city": "토론토", "group": "E", "korea": False},
 
     # ── Group F ────────────────────────────────────────────────────────
     {"home": "네덜란드", "away": "일본", "home_f": "🇳🇱", "away_f": "🇯🇵",
      "date": "2026-06-16T22:00:00Z", "venue": "Gillette Stadium", "city": "보스턴", "group": "F", "korea": False},
-    {"home": "스웨덴", "away": "코스타리카", "home_f": "🇸🇪", "away_f": "🇨🇷",
+    {"home": "스웨덴", "away": "튀니지", "home_f": "🇸🇪", "away_f": "🇹🇳",
      "date": "2026-06-17T01:00:00Z", "venue": "Rose Bowl", "city": "LA", "group": "F", "korea": False},
     {"home": "네덜란드", "away": "스웨덴", "home_f": "🇳🇱", "away_f": "🇸🇪",
      "date": "2026-06-23T22:00:00Z", "venue": "Levi's Stadium", "city": "샌프란시스코", "group": "F", "korea": False},
-    {"home": "일본", "away": "코스타리카", "home_f": "🇯🇵", "away_f": "🇨🇷",
+    {"home": "일본", "away": "튀니지", "home_f": "🇯🇵", "away_f": "🇹🇳",
      "date": "2026-06-24T01:00:00Z", "venue": "Arrowhead Stadium", "city": "캔자스시티", "group": "F", "korea": False},
-    {"home": "네덜란드", "away": "코스타리카", "home_f": "🇳🇱", "away_f": "🇨🇷",
+    {"home": "네덜란드", "away": "튀니지", "home_f": "🇳🇱", "away_f": "🇹🇳",
      "date": "2026-06-26T22:00:00Z", "venue": "Estadio Jalisco", "city": "과달라하라", "group": "F", "korea": False},
-    {"home": "스웨덴", "away": "일본", "home_f": "🇸🇪", "away_f": "🇯🇵",
+    {"home": "일본", "away": "스웨덴", "home_f": "🇯🇵", "away_f": "🇸🇪",
      "date": "2026-06-27T01:00:00Z", "venue": "NRG Stadium", "city": "휴스턴", "group": "F", "korea": False},
 
     # ── Group G ────────────────────────────────────────────────────────
-    {"home": "독일", "away": "이탈리아", "home_f": "🇩🇪", "away_f": "🇮🇹",
+    {"home": "벨기에", "away": "이집트", "home_f": "🇧🇪", "away_f": "🇪🇬",
      "date": "2026-06-17T22:00:00Z", "venue": "Lumen Field", "city": "시애틀", "group": "G", "korea": False},
-    {"home": "벨기에", "away": "코트디부아르", "home_f": "🇧🇪", "away_f": "🇨🇮",
+    {"home": "이란", "away": "뉴질랜드", "home_f": "🇮🇷", "away_f": "🇳🇿",
      "date": "2026-06-18T01:00:00Z", "venue": "Allegiant Stadium", "city": "라스베이거스", "group": "G", "korea": False},
-    {"home": "독일", "away": "벨기에", "home_f": "🇩🇪", "away_f": "🇧🇪",
+    {"home": "벨기에", "away": "이란", "home_f": "🇧🇪", "away_f": "🇮🇷",
      "date": "2026-06-22T22:00:00Z", "venue": "AT&T Stadium", "city": "댈러스", "group": "G", "korea": False},
-    {"home": "이탈리아", "away": "코트디부아르", "home_f": "🇮🇹", "away_f": "🇨🇮",
+    {"home": "이집트", "away": "뉴질랜드", "home_f": "🇪🇬", "away_f": "🇳🇿",
      "date": "2026-06-23T01:00:00Z", "venue": "MetLife Stadium", "city": "뉴저지", "group": "G", "korea": False},
-    {"home": "독일", "away": "코트디부아르", "home_f": "🇩🇪", "away_f": "🇨🇮",
+    {"home": "벨기에", "away": "뉴질랜드", "home_f": "🇧🇪", "away_f": "🇳🇿",
      "date": "2026-06-26T22:00:00Z", "venue": "SoFi Stadium", "city": "LA", "group": "G", "korea": False},
-    {"home": "이탈리아", "away": "벨기에", "home_f": "🇮🇹", "away_f": "🇧🇪",
+    {"home": "이집트", "away": "이란", "home_f": "🇪🇬", "away_f": "🇮🇷",
      "date": "2026-06-27T01:00:00Z", "venue": "Hard Rock Stadium", "city": "마이애미", "group": "G", "korea": False},
 
     # ── Group H ────────────────────────────────────────────────────────
-    {"home": "오스트리아", "away": "이집트", "home_f": "🇦🇹", "away_f": "🇪🇬",
+    {"home": "스페인", "away": "카보베르데", "home_f": "🇪🇸", "away_f": "🇨🇻",
      "date": "2026-06-18T22:00:00Z", "venue": "Rose Bowl", "city": "LA", "group": "H", "korea": False},
-    {"home": "페루", "away": "사우디", "home_f": "🇵🇪", "away_f": "🇸🇦",
+    {"home": "사우디아라비아", "away": "우루과이", "home_f": "🇸🇦", "away_f": "🇺🇾",
      "date": "2026-06-19T01:00:00Z", "venue": "Estadio Akron", "city": "과달라하라", "group": "H", "korea": False},
-    {"home": "오스트리아", "away": "페루", "home_f": "🇦🇹", "away_f": "🇵🇪",
+    {"home": "스페인", "away": "사우디아라비아", "home_f": "🇪🇸", "away_f": "🇸🇦",
      "date": "2026-06-23T22:00:00Z", "venue": "Lincoln Financial Field", "city": "필라델피아", "group": "H", "korea": False},
-    {"home": "이집트", "away": "사우디", "home_f": "🇪🇬", "away_f": "🇸🇦",
+    {"home": "카보베르데", "away": "우루과이", "home_f": "🇨🇻", "away_f": "🇺🇾",
      "date": "2026-06-24T01:00:00Z", "venue": "Estadio BBVA", "city": "몬테레이", "group": "H", "korea": False},
-    {"home": "오스트리아", "away": "사우디", "home_f": "🇦🇹", "away_f": "🇸🇦",
+    {"home": "스페인", "away": "우루과이", "home_f": "🇪🇸", "away_f": "🇺🇾",
      "date": "2026-06-26T22:00:00Z", "venue": "Arrowhead Stadium", "city": "캔자스시티", "group": "H", "korea": False},
-    {"home": "페루", "away": "이집트", "home_f": "🇵🇪", "away_f": "🇪🇬",
+    {"home": "카보베르데", "away": "사우디아라비아", "home_f": "🇨🇻", "away_f": "🇸🇦",
      "date": "2026-06-27T01:00:00Z", "venue": "Gillette Stadium", "city": "보스턴", "group": "H", "korea": False},
 
     # ── Group I ────────────────────────────────────────────────────────
-    {"home": "웨일스", "away": "이란", "home_f": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "away_f": "🇮🇷",
+    {"home": "프랑스", "away": "세네갈", "home_f": "🇫🇷", "away_f": "🇸🇳",
      "date": "2026-06-19T22:00:00Z", "venue": "BC Place", "city": "밴쿠버", "group": "I", "korea": False},
-    {"home": "호주", "away": "나이지리아", "home_f": "🇦🇺", "away_f": "🇳🇬",
+    {"home": "이라크", "away": "노르웨이", "home_f": "🇮🇶", "away_f": "🇳🇴",
      "date": "2026-06-20T01:00:00Z", "venue": "BMO Field", "city": "토론토", "group": "I", "korea": False},
-    {"home": "웨일스", "away": "호주", "home_f": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "away_f": "🇦🇺",
+    {"home": "프랑스", "away": "이라크", "home_f": "🇫🇷", "away_f": "🇮🇶",
      "date": "2026-06-23T22:00:00Z", "venue": "NRG Stadium", "city": "휴스턴", "group": "I", "korea": False},
-    {"home": "이란", "away": "나이지리아", "home_f": "🇮🇷", "away_f": "🇳🇬",
+    {"home": "세네갈", "away": "노르웨이", "home_f": "🇸🇳", "away_f": "🇳🇴",
      "date": "2026-06-24T01:00:00Z", "venue": "Lumen Field", "city": "시애틀", "group": "I", "korea": False},
-    {"home": "웨일스", "away": "나이지리아", "home_f": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "away_f": "🇳🇬",
+    {"home": "프랑스", "away": "노르웨이", "home_f": "🇫🇷", "away_f": "🇳🇴",
      "date": "2026-06-26T22:00:00Z", "venue": "Estadio Azteca", "city": "멕시코시티", "group": "I", "korea": False},
-    {"home": "호주", "away": "이란", "home_f": "🇦🇺", "away_f": "🇮🇷",
+    {"home": "세네갈", "away": "이라크", "home_f": "🇸🇳", "away_f": "🇮🇶",
      "date": "2026-06-27T01:00:00Z", "venue": "Allegiant Stadium", "city": "라스베이거스", "group": "I", "korea": False},
 
     # ── Group J ────────────────────────────────────────────────────────
-    {"home": "스위스", "away": "콜롬비아", "home_f": "🇨🇭", "away_f": "🇨🇴",
+    {"home": "아르헨티나", "away": "알제리", "home_f": "🇦🇷", "away_f": "🇩🇿",
      "date": "2026-06-20T22:00:00Z", "venue": "Estadio Azteca", "city": "멕시코시티", "group": "J", "korea": False},
-    {"home": "에콰도르", "away": "가나", "home_f": "🇪🇨", "away_f": "🇬🇭",
+    {"home": "오스트리아", "away": "요르단", "home_f": "🇦🇹", "away_f": "🇯🇴",
      "date": "2026-06-21T01:00:00Z", "venue": "Levi's Stadium", "city": "샌프란시스코", "group": "J", "korea": False},
-    {"home": "스위스", "away": "에콰도르", "home_f": "🇨🇭", "away_f": "🇪🇨",
+    {"home": "아르헨티나", "away": "오스트리아", "home_f": "🇦🇷", "away_f": "🇦🇹",
      "date": "2026-06-24T22:00:00Z", "venue": "Estadio BBVA", "city": "몬테레이", "group": "J", "korea": False},
-    {"home": "콜롬비아", "away": "가나", "home_f": "🇨🇴", "away_f": "🇬🇭",
+    {"home": "알제리", "away": "요르단", "home_f": "🇩🇿", "away_f": "🇯🇴",
      "date": "2026-06-25T01:00:00Z", "venue": "Rose Bowl", "city": "LA", "group": "J", "korea": False},
-    {"home": "스위스", "away": "가나", "home_f": "🇨🇭", "away_f": "🇬🇭",
+    {"home": "아르헨티나", "away": "요르단", "home_f": "🇦🇷", "away_f": "🇯🇴",
      "date": "2026-06-26T22:00:00Z", "venue": "SoFi Stadium", "city": "LA", "group": "J", "korea": False},
-    {"home": "콜롬비아", "away": "에콰도르", "home_f": "🇨🇴", "away_f": "🇪🇨",
+    {"home": "알제리", "away": "오스트리아", "home_f": "🇩🇿", "away_f": "🇦🇹",
      "date": "2026-06-27T01:00:00Z", "venue": "Lincoln Financial Field", "city": "필라델피아", "group": "J", "korea": False},
 
     # ── Group K ────────────────────────────────────────────────────────
-    {"home": "터키", "away": "덴마크", "home_f": "🇹🇷", "away_f": "🇩🇰",
+    {"home": "포르투갈", "away": "콩고민주공화국", "home_f": "🇵🇹", "away_f": "🇨🇩",
      "date": "2026-06-21T22:00:00Z", "venue": "BMO Field", "city": "토론토", "group": "K", "korea": False},
-    {"home": "온두라스", "away": "볼리비아", "home_f": "🇭🇳", "away_f": "🇧🇴",
+    {"home": "우즈베키스탄", "away": "콜롬비아", "home_f": "🇺🇿", "away_f": "🇨🇴",
      "date": "2026-06-22T01:00:00Z", "venue": "Gillette Stadium", "city": "보스턴", "group": "K", "korea": False},
-    {"home": "터키", "away": "온두라스", "home_f": "🇹🇷", "away_f": "🇭🇳",
+    {"home": "포르투갈", "away": "우즈베키스탄", "home_f": "🇵🇹", "away_f": "🇺🇿",
      "date": "2026-06-24T22:00:00Z", "venue": "Estadio Jalisco", "city": "과달라하라", "group": "K", "korea": False},
-    {"home": "덴마크", "away": "볼리비아", "home_f": "🇩🇰", "away_f": "🇧🇴",
+    {"home": "콩고민주공화국", "away": "콜롬비아", "home_f": "🇨🇩", "away_f": "🇨🇴",
      "date": "2026-06-25T01:00:00Z", "venue": "AT&T Stadium", "city": "댈러스", "group": "K", "korea": False},
-    {"home": "터키", "away": "볼리비아", "home_f": "🇹🇷", "away_f": "🇧🇴",
+    {"home": "포르투갈", "away": "콜롬비아", "home_f": "🇵🇹", "away_f": "🇨🇴",
      "date": "2026-06-27T00:00:00Z", "venue": "MetLife Stadium", "city": "뉴저지", "group": "K", "korea": False},
-    {"home": "덴마크", "away": "온두라스", "home_f": "🇩🇰", "away_f": "🇭🇳",
+    {"home": "콩고민주공화국", "away": "우즈베키스탄", "home_f": "🇨🇩", "away_f": "🇺🇿",
      "date": "2026-06-27T03:00:00Z", "venue": "NRG Stadium", "city": "휴스턴", "group": "K", "korea": False},
 
     # ── Group L ────────────────────────────────────────────────────────
-    {"home": "세르비아", "away": "카타르", "home_f": "🇷🇸", "away_f": "🇶🇦",
+    {"home": "잉글랜드", "away": "크로아티아", "home_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away_f": "🇭🇷",
      "date": "2026-06-22T22:00:00Z", "venue": "Arrowhead Stadium", "city": "캔자스시티", "group": "L", "korea": False},
-    {"home": "폴란드", "away": "알제리", "home_f": "🇵🇱", "away_f": "🇩🇿",
+    {"home": "가나", "away": "파나마", "home_f": "🇬🇭", "away_f": "🇵🇦",
      "date": "2026-06-23T01:00:00Z", "venue": "BC Place", "city": "밴쿠버", "group": "L", "korea": False},
-    {"home": "세르비아", "away": "폴란드", "home_f": "🇷🇸", "away_f": "🇵🇱",
+    {"home": "잉글랜드", "away": "가나", "home_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away_f": "🇬🇭",
      "date": "2026-06-25T22:00:00Z", "venue": "Lumen Field", "city": "시애틀", "group": "L", "korea": False},
-    {"home": "카타르", "away": "알제리", "home_f": "🇶🇦", "away_f": "🇩🇿",
+    {"home": "크로아티아", "away": "파나마", "home_f": "🇭🇷", "away_f": "🇵🇦",
      "date": "2026-06-26T01:00:00Z", "venue": "Estadio Azteca", "city": "멕시코시티", "group": "L", "korea": False},
-    {"home": "세르비아", "away": "알제리", "home_f": "🇷🇸", "away_f": "🇩🇿",
+    {"home": "잉글랜드", "away": "파나마", "home_f": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away_f": "🇵🇦",
      "date": "2026-06-27T00:00:00Z", "venue": "Allegiant Stadium", "city": "라스베이거스", "group": "L", "korea": False},
-    {"home": "폴란드", "away": "카타르", "home_f": "🇵🇱", "away_f": "🇶🇦",
+    {"home": "크로아티아", "away": "가나", "home_f": "🇭🇷", "away_f": "🇬🇭",
      "date": "2026-06-27T03:00:00Z", "venue": "Estadio BBVA", "city": "몬테레이", "group": "L", "korea": False},
 ]
 
@@ -243,6 +253,15 @@ STAGE_MAP = {
 
 def seed():
     Base.metadata.create_all(bind=engine)
+
+    # 기존 DB에 posts.view_count 컬럼이 없으면 추가 (조회수 기능 마이그레이션)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE posts ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
     db = SessionLocal()
 
     # 조별예선 삽입
@@ -253,7 +272,7 @@ def seed():
                 away_team=m["away"],
                 home_flag=m["home_f"],
                 away_flag=m["away_f"],
-                match_date=datetime.fromisoformat(m["date"].replace("Z", "+00:00")),
+                match_date=to_kst_naive(m["date"]),
                 venue=m["venue"],
                 city=m["city"],
                 stage=MatchStage.GROUP,
@@ -271,7 +290,7 @@ def seed():
                 away_team="미정",
                 home_flag="❓",
                 away_flag="❓",
-                match_date=datetime.fromisoformat(m["date"].replace("Z", "+00:00")),
+                match_date=to_kst_naive(m["date"]),
                 venue=m["venue"],
                 city=m["city"],
                 stage=STAGE_MAP[m["stage"]],

@@ -1,12 +1,14 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import useStore from '../store/useStore'
+import { withCountry } from '../utils/flags'
 
 const NAV_LINKS = [
   { path: '/', label: '홈' },
   { path: '/schedule', label: '대진표' },
   { path: '/countries', label: '참가국' },
   { path: '/betting', label: '🏆 베팅' },
+  { path: '/board', label: '📣 응원게시판' },
   { path: '/rankings', label: '📊 포인트순위' },
 ]
 
@@ -103,7 +105,7 @@ export default function Navbar() {
           {user ? (
             <>
               <span className="text-wc-gold font-bold text-sm">
-                {user.nickname} · {user.points.toLocaleString()}P
+                {withCountry(user.nickname, user.national)} · {user.points.toLocaleString()}P
               </span>
               {user.is_admin && (
                 <Link to="/admin" className="text-xs text-red-400 hover:text-red-300">관리자</Link>

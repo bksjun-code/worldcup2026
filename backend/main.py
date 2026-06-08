@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 
 from database import engine, Base, get_db
-from routers import auth, matches, bets, admin
+from routers import auth, matches, bets, admin, board
 from seed_data import seed
 
 load_dotenv()
@@ -40,6 +40,7 @@ app.include_router(auth.router)
 app.include_router(matches.router)
 app.include_router(bets.router)
 app.include_router(admin.router)
+app.include_router(board.router)
 
 
 @app.get("/")

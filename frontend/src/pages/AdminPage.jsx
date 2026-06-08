@@ -2,7 +2,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import useStore from '../store/useStore'
-import { getFlagUrl } from '../utils/flags'
+import { getFlagUrl, withCountry } from '../utils/flags'
 
 function ConfirmModal({ message, subMessage, confirmLabel = '확인', onConfirm, onCancel }) {
   return (
@@ -654,7 +654,7 @@ function MatchBetsTab({ matches, pendingCounts }) {
                 {paginated.map((b, i) => (
                   <tr key={i} className="border-b border-white/5 hover:bg-white/3 transition-colors">
                     <td className="px-4 py-2 text-gray-600">{(page-1)*PAGE_SIZE + i + 1}</td>
-                    <td className="px-4 py-2 text-white font-medium">{b.nickname}</td>
+                    <td className="px-4 py-2 text-white font-medium">{withCountry(b.nickname, b.national)}</td>
                     <td className={`px-3 py-2 text-center font-bold ${PRED_COLOR[b.prediction]}`}>{PRED_KO[b.prediction]}</td>
                     <td className="px-4 py-2 text-right text-white">{b.amount.toLocaleString()}P</td>
                     <td className={`px-3 py-2 text-center font-bold ${STATUS_CLS[b.status]}`}>{STATUS_KO[b.status]}</td>
@@ -722,7 +722,7 @@ function UserBetModal({ userId, onClose }) {
           ) : (
             <div className="flex items-center gap-4 flex-wrap">
               <div>
-                <div className="font-bold text-white text-base">{data?.user.nickname}</div>
+                <div className="font-bold text-white text-base">{data?.user && withCountry(data.user.nickname, data.user.national)}</div>
                 <div className="text-gray-500 text-xs">{data?.user.email}</div>
               </div>
               {data && (
@@ -983,6 +983,131 @@ function PointStatsTab() {
 
 
 // ── 회원 손익 탭 ───────────────────────────────────────────────────────────
+function SimulatorSettingsTab() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  const load = () => {
+    setLoading(true)
+    api.get('/admin/simulator-settings')
+      .then(r => setData(r.data))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  if (loading || !data) {
+    return <div className="text-center text-gray-500 py-20">로딩 중...</div>
+  }
+
+  const update = (patch) => setData(prev => ({ ...prev, ...patch }))
+
+  const handleSave = async () => {
+    setSaving(true)
+    setMsg('')
+    try {
+      const res = await api.put('/admin/simulator-settings', {
+        signup_enabled: data.signup_enabled,
+        signup_interval_sec: Number(data.signup_interval_sec),
+        board_enabled: data.board_enabled,
+        board_interval_sec: Number(data.board_interval_sec),
+      })
+      setData(res.data)
+      setMsg('완료: 설정이 저장되었습니다')
+    } catch (err) {
+      setMsg(err.response?.data?.detail || '저장에 실패했습니다')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const Card = ({ title, desc, enabledKey, intervalKey, intervalLabel }) => (
+    <div className="wc-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="font-bold text-white">{title}</div>
+          <div className="text-xs text-gray-500 mt-0.5">{desc}</div>
+        </div>
+        <button
+          onClick={() => update({ [enabledKey]: !data[enabledKey] })}
+          className="relative w-14 h-7 rounded-full transition-colors flex-shrink-0"
+          style={{ background: data[enabledKey] ? 'rgba(74,222,128,0.35)' : 'rgba(255,255,255,0.1)' }}
+        >
+          <span
+            className="absolute top-0.5 w-6 h-6 rounded-full transition-all"
+            style={{
+              left: data[enabledKey] ? '30px' : '2px',
+              background: data[enabledKey] ? '#4ade80' : 'rgba(255,255,255,0.5)',
+            }}
+          />
+        </button>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-gray-400 whitespace-nowrap">{intervalLabel}</span>
+        <input
+          type="number"
+          min={5}
+          max={3600}
+          value={data[intervalKey]}
+          onChange={e => update({ [intervalKey]: e.target.value })}
+          disabled={!data[enabledKey]}
+          className="glass-input w-28 px-3 py-1.5 text-sm disabled:opacity-40"
+        />
+        <span className="text-xs text-gray-500">초 (5~3600)</span>
+      </div>
+      <div className="text-xs">
+        상태: <span className={data[enabledKey] ? 'text-green-400 font-bold' : 'text-gray-500'}>
+          {data[enabledKey] ? '🟢 활성' : '⚪ 비활성'}
+        </span>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card
+          title="🤖 회원가입 시뮬레이터"
+          desc="가상 회원이 자동으로 가입하고 베팅합니다"
+          enabledKey="signup_enabled"
+          intervalKey="signup_interval_sec"
+          intervalLabel="가입 주기"
+        />
+        <Card
+          title="📣 게시판 자동생성 시뮬레이터"
+          desc="가상 회원이 응원글·댓글·반응을 자동 생성합니다"
+          enabledKey="board_enabled"
+          intervalKey="board_interval_sec"
+          intervalLabel="작성 주기"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-gold px-6 py-2.5 text-sm disabled:opacity-50"
+        >
+          {saving ? '저장 중...' : '설정 저장'}
+        </button>
+        {msg && (
+          <span className={`text-xs ${msg.startsWith('완료') ? 'text-green-400' : 'text-red-400'}`}>{msg}</span>
+        )}
+        {data.updated_at && (
+          <span className="text-xs text-gray-600 ml-auto">최근 수정: {formatKST(data.updated_at)}</span>
+        )}
+      </div>
+
+      <div className="text-xs text-gray-500 wc-card p-4 leading-relaxed">
+        ⚠️ 이 설정은 시뮬레이터 프로그램(<code className="text-gray-400">simulator.py</code> · <code className="text-gray-400">board_simulator.py</code>)이
+        실행 중일 때만 적용됩니다. 활성화 후 해당 프로그램을 실행해야 자동 활동이 시작됩니다.
+      </div>
+    </div>
+  )
+}
+
 function UserProfitTab() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -1046,7 +1171,7 @@ function UserProfitTab() {
                 <tr key={u.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
                   <td className="px-4 py-2 text-gray-500 font-bold">{rank}</td>
                   <td className="px-4 py-2">
-                    <div className="text-white font-medium">{u.nickname}</div>
+                    <div className="text-white font-medium">{withCountry(u.nickname, u.national)}</div>
                     <div className="text-gray-600 text-[10px]">{u.email}</div>
                   </td>
                   <td className="px-3 py-2 text-center text-gray-300">{u.bet_count}</td>
@@ -1145,6 +1270,7 @@ export default function AdminPage() {
     { v: 'bets',     l: '🎯 경기 베팅 현황' },
     { v: 'users',    l: '📊 회원 손익 현황' },
     { v: 'points',   l: '💰 포인트 통계' },
+    { v: 'simulator', l: '🤖 시뮬레이터 설정' },
   ]
 
   return (
@@ -1297,6 +1423,9 @@ export default function AdminPage() {
 
         {/* 포인트 통계 탭 */}
         {tab === 'points' && <PointStatsTab />}
+
+        {/* 시뮬레이터 설정 탭 */}
+        {tab === 'simulator' && <SimulatorSettingsTab />}
       </div>
     </div>
   )

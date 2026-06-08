@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import api from '../api'
 import { getFlagUrl } from '../utils/flags'
 import FifaBadge from '../components/FifaBadge'
+import { getFifaRank, getPowerRank } from '../utils/rankings'
 import VenueModal, { getVenueNameKo } from '../components/VenueModal'
 
 function FlagImg({ name, emoji, size = 32 }) {
@@ -61,6 +62,12 @@ function calcStandings(groupMatches) {
     const agd = a.gf - a.ga, bgd = b.gf - b.ga
     if (bgd !== agd) return bgd - agd
     if (b.gf !== a.gf) return b.gf - a.gf
+    // 아직 경기 결과가 없어 동률일 때는 전문가 파워랭킹(최근 폼·전력 분석 기반,
+    // 낮을수록 강팀)을 1순위로, FIFA 랭킹을 보조 근거로 삼아 진출을 예측
+    const apr = getPowerRank(a.name) ?? 999, bpr = getPowerRank(b.name) ?? 999
+    if (apr !== bpr) return apr - bpr
+    const ar = getFifaRank(a.name) ?? 999, br = getFifaRank(b.name) ?? 999
+    if (ar !== br) return ar - br
     return a.name.localeCompare(b.name)
   })
 }

@@ -118,7 +118,7 @@ def get_my_bets(db: Session = Depends(get_db), current_user: User = Depends(get_
 @router.get("/leaderboard")
 def get_leaderboard(db: Session = Depends(get_db)):
     users = db.query(User).filter(User.is_admin == False).order_by(User.points.desc()).limit(20).all()
-    return [{"rank": i + 1, "nickname": u.nickname, "points": u.points} for i, u in enumerate(users)]
+    return [{"rank": i + 1, "nickname": u.nickname, "national": u.national, "points": u.points} for i, u in enumerate(users)]
 
 
 @router.get("/rankings")
@@ -128,6 +128,7 @@ def get_rankings(db: Session = Depends(get_db)):
         db.query(
             User.id,
             User.nickname,
+            User.national,
             User.points,
             func.count(Bet.id).label("bet_count"),
             func.coalesce(func.sum(case((Bet.status == BetStatus.WON,     1), else_=0)), 0).label("won"),
@@ -144,13 +145,13 @@ def get_rankings(db: Session = Depends(get_db)):
         )
         .outerjoin(Bet, Bet.user_id == User.id)
         .filter(User.is_admin == False)
-        .group_by(User.id, User.nickname, User.points)
+        .group_by(User.id, User.nickname, User.national, User.points)
         .order_by(User.points.desc())
         .all()
     )
     return [
         {
-            "rank": i + 1, "id": r.id, "nickname": r.nickname,
+            "rank": i + 1, "id": r.id, "nickname": r.nickname, "national": r.national,
             "points": r.points, "bet_count": r.bet_count,
             "won": r.won, "lost": r.lost, "pending": r.pending,
             "total_bet": r.total_bet, "net_profit": r.net_profit,
@@ -183,7 +184,7 @@ def get_ranking_user_detail(user_id: int, db: Session = Depends(get_db)):
     )
 
     return {
-        "user": {"id": user.id, "nickname": user.nickname, "points": user.points},
+        "user": {"id": user.id, "nickname": user.nickname, "national": user.national, "points": user.points},
         "summary": {
             "total_bet": total_bet, "total_payout": total_payout, "net_profit": net_profit,
             "won":     sum(1 for b, _ in bets if b.status == BetStatus.WON),

@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react'
 import api from '../api'
+import { withCountry, getCountryName } from '../utils/flags'
+
+// 닉네임 + 국가명을 표시하되, 국가명 부분만 포인트 값과 동일한 색상(text-wc-gold)으로 강조
+function NicknameWithCountry({ nickname, national }) {
+  const country = getCountryName(national)
+  if (!country) return nickname
+  return (
+    <>
+      {nickname}<span className="text-wc-gold">({country})</span>
+    </>
+  )
+}
 
 // ── 상수 ─────────────────────────────────────────────────────────────────────
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
@@ -412,7 +424,7 @@ function UserDetailModal({ userId, rankData, onClose }) {
                 {medal || `#${rankData?.rank}`}
               </div>
               <div>
-                <div className="font-bebas text-xl text-white tracking-wide">{rankData?.nickname}</div>
+                <div className="font-bebas text-xl text-white tracking-wide">{rankData && withCountry(rankData.nickname, rankData.national)}</div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-sm font-bold text-wc-gold">{pts(rankData?.points)}</span>
                   <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
@@ -715,7 +727,7 @@ export default function RankingsPage() {
                       <div className="font-bold" style={{ color: isTop3 ? '#C8A84B' : 'rgba(255,255,255,0.4)', fontSize: 13 }}>
                         {medal || `#${u.rank}`}
                       </div>
-                      <div className="font-semibold text-white truncate">{u.nickname}</div>
+                      <div className="font-semibold text-white truncate"><NicknameWithCountry nickname={u.nickname} national={u.national} /></div>
                       <div className="text-right font-bold text-wc-gold">{u.points.toLocaleString()}P</div>
                       <div className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{u.bet_count}</div>
                       <div className="text-center text-xs font-semibold" style={{ color: '#4ade80' }}>{u.won}</div>
@@ -733,7 +745,7 @@ export default function RankingsPage() {
                         {medal || `#${u.rank}`}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-white truncate">{u.nickname}</div>
+                        <div className="font-semibold text-sm text-white truncate"><NicknameWithCountry nickname={u.nickname} national={u.national} /></div>
                         <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
                           베팅 {u.bet_count}회 · 적중 {u.won} · 승률 {wr}
                         </div>

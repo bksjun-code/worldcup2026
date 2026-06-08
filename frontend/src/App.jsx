@@ -8,6 +8,7 @@ import BettingPage from './pages/BettingPage'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
 import RankingsPage from './pages/RankingsPage'
+import BoardPage from './pages/BoardPage'
 import useStore from './store/useStore'
 
 const THEME_ORBS = {
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/rankings" element={<RankingsPage />} />
+        <Route path="/board" element={<BoardPage />} />
       </Routes>
     </div>
   )

@@ -19,6 +19,7 @@ class UserResponse(BaseModel):
     nickname: str
     points: int
     is_admin: bool
+    national: str
     created_at: datetime
 
     class Config:

@@ -10,11 +10,29 @@ const TEAM_ISO = {
   '코스타리카': 'cr', '오스트리아': 'at', '페루': 'pe', '웨일스': 'gb-wls', '온두라스': 'hn',
   '이란': 'ir', '호주': 'au', '나이지리아': 'ng',
   '스위스': 'ch', '콜롬비아': 'co', '에콰도르': 'ec', '가나': 'gh',
-  '터키': 'tr', '덴마크': 'dk', '볼리비아': 'bo',
-  '세르비아': 'rs', '카타르': 'qa', '폴란드': 'pl', '알제리': 'dz',
+  '터키': 'tr', '카타르': 'qa', '알제리': 'dz',
+  '보스니아·헤르체고비나': 'ba', '아이티': 'ht', '스코틀랜드': 'gb-sct',
+  '파라과이': 'py', '퀴라소': 'cw', '뉴질랜드': 'nz', '카보베르데': 'cv',
+  '이라크': 'iq', '노르웨이': 'no', '요르단': 'jo', '콩고민주공화국': 'cd',
+  '우즈베키스탄': 'uz',
 }
 
 export function getFlagUrl(teamName) {
   const iso = TEAM_ISO[teamName]
   return iso ? `${import.meta.env.BASE_URL}flags/${iso}.png` : null
+}
+
+// ISO 코드 → 국가명 (TEAM_ISO 역매핑, 회원의 national 코드 표시에 사용)
+const ISO_COUNTRY_NAME = Object.fromEntries(
+  Object.entries(TEAM_ISO).map(([name, iso]) => [iso, name])
+)
+
+export function getCountryName(isoCode) {
+  return ISO_COUNTRY_NAME[isoCode] ?? null
+}
+
+// "닉네임(국가)" 형태로 표시할 문자열을 만든다
+export function withCountry(nickname, isoCode) {
+  const name = getCountryName(isoCode)
+  return name ? `${nickname}(${name})` : nickname
 }
