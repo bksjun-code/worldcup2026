@@ -422,36 +422,39 @@ export default function BoardPage() {
           <div className="flex items-center mt-6">
             <div className="flex-1" />
             <div className="flex-1 flex items-center justify-center gap-1.5">
-              {totalPages > 1 && (
-                <>
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    ‹
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${p === page ? 'bg-wc-gold text-black' : 'text-gray-400 hover:text-white'}`}
-                      style={p !== page ? { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' } : {}}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    ›
-                  </button>
-                </>
-              )}
+              {totalPages > 1 && (() => {
+                const btnCls = "px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+                const btnStyle = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }
+
+                const pageNums = []
+                const delta = 2
+                const left = Math.max(2, page - delta)
+                const right = Math.min(totalPages - 1, page + delta)
+                pageNums.push(1)
+                if (left > 2) pageNums.push('...')
+                for (let p = left; p <= right; p++) pageNums.push(p)
+                if (right < totalPages - 1) pageNums.push('...')
+                if (totalPages > 1) pageNums.push(totalPages)
+
+                return (
+                  <>
+                    <button onClick={() => setPage(1)} disabled={page === 1} className={btnCls} style={btnStyle}>«</button>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className={btnCls} style={btnStyle}>‹</button>
+                    {pageNums.map((p, i) =>
+                      p === '...'
+                        ? <span key={`ellipsis-${i}`} className="px-1 text-gray-600 text-xs">…</span>
+                        : <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${p === page ? 'bg-wc-gold text-black' : 'text-gray-400 hover:text-white'}`}
+                            style={p !== page ? btnStyle : {}}
+                          >{p}</button>
+                    )}
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className={btnCls} style={btnStyle}>›</button>
+                    <button onClick={() => setPage(totalPages)} disabled={page === totalPages} className={btnCls} style={btnStyle}>»</button>
+                  </>
+                )
+              })()}
             </div>
             <div className="flex-1 flex justify-end">
               {!user ? (
