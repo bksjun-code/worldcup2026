@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
+import api from '../api'
 
 import bg1 from '../photo/1.png'
 import bg2 from '../photo/2.png'
@@ -12,11 +13,34 @@ import bg7 from '../photo/7.png'
 
 const BG_IMAGES = [bg1, bg2, bg3, bg4, bg5, bg6, bg7]
 
-const KICKOFF = new Date('2026-06-11T20:00:00-06:00')
+const TEAM_FLAG = {
+  '대한민국': '🇰🇷', '체코': '🇨🇿', '멕시코': '🇲🇽', '남아프리카공화국': '🇿🇦',
+  '남아공': '🇿🇦', '미국': '🇺🇸', '캐나다': '🇨🇦',
+}
+
+function useKoreaNextMatch() {
+  const [nextMatch, setNextMatch] = useState(undefined) // undefined=로딩중, null=없음
+  useEffect(() => {
+    api.get('/matches')
+      .then(r => {
+        const now = Date.now()
+        const korea = r.data
+          .filter(m => m.home_team === '대한민국' || m.away_team === '대한민국')
+          .sort((a, b) => new Date(a.match_date + '+09:00') - new Date(b.match_date + '+09:00'))
+        const live = korea.find(m => m.status === 'live')
+        if (live) { setNextMatch({ ...live, isLive: true }); return }
+        const next = korea.find(m => m.status !== 'finished' && new Date(m.match_date + '+09:00') > now)
+        setNextMatch(next ? { ...next, isLive: false } : null)
+      })
+      .catch(() => setNextMatch(null))
+  }, [])
+  return nextMatch
+}
 
 function useCountdown(target) {
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   useEffect(() => {
+    if (!target) return
     const tick = () => {
       const diff = target - Date.now()
       if (diff <= 0) { setTime({ days: 0, hours: 0, minutes: 0, seconds: 0 }); return }
@@ -162,7 +186,9 @@ export default function LandingPage() {
   const audioRef     = useRef(null)
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume]   = useState(0.4)
-  const { days, hours, minutes, seconds } = useCountdown(KICKOFF)
+  const nextMatch = useKoreaNextMatch()
+  const matchTarget = nextMatch ? new Date(nextMatch.match_date + '+09:00').getTime() : null
+  const { days, hours, minutes, seconds } = useCountdown(matchTarget)
 
   const togglePlay = () => {
     const audio = audioRef.current
@@ -238,15 +264,44 @@ export default function LandingPage() {
 
         {/* 카운트다운 */}
         <div ref={countdownRef} className="mt-12">
-          <div className="flex items-center gap-3 md:gap-7">
-            <CountdownUnit value={days}    label="일" />
-            <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
-            <CountdownUnit value={hours}   label="시간" />
-            <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
-            <CountdownUnit value={minutes} label="분" />
-            <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
-            <CountdownUnit value={seconds} label="초" />
-          </div>
+          {nextMatch === undefined ? (
+            <div className="text-wc-gold/40 text-sm tracking-widest">로딩 중...</div>
+          ) : nextMatch === null ? (
+            <div className="text-center px-8 py-6 rounded-2xl" style={{ background: 'rgba(200,168,75,0.08)', border: '1px solid rgba(200,168,75,0.25)' }}>
+              <div className="text-wc-gold font-bebas text-3xl md:text-4xl tracking-widest">🇰🇷 조별리그 완료</div>
+              <div className="text-white/50 text-sm mt-2">대한민국의 다음 경기를 기다려 주세요</div>
+            </div>
+          ) : nextMatch.isLive ? (
+            <div className="text-center px-8 py-6 rounded-2xl" style={{ background: 'rgba(139,30,47,0.18)', border: '1px solid rgba(200,168,75,0.35)' }}>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-red-400 text-xs font-bold tracking-[0.25em] uppercase">Live</span>
+              </div>
+              <div className="text-white font-bold text-xl md:text-2xl">
+                {TEAM_FLAG[nextMatch.home_team] || ''} {nextMatch.home_team} vs {nextMatch.away_team} {TEAM_FLAG[nextMatch.away_team] || ''}
+              </div>
+              <div className="text-wc-gold/60 text-xs mt-2">{nextMatch.venue}</div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <div className="text-center">
+                <div className="text-white/50 text-xs tracking-[0.25em] uppercase mb-1">다음 한국 경기</div>
+                <div className="text-white font-bold text-lg md:text-2xl">
+                  {TEAM_FLAG[nextMatch.home_team] || ''} {nextMatch.home_team} vs {nextMatch.away_team} {TEAM_FLAG[nextMatch.away_team] || ''}
+                </div>
+                <div className="text-wc-gold/60 text-xs mt-1">{nextMatch.venue}</div>
+              </div>
+              <div className="flex items-center gap-3 md:gap-7">
+                <CountdownUnit value={days}    label="일" />
+                <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
+                <CountdownUnit value={hours}   label="시간" />
+                <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
+                <CountdownUnit value={minutes} label="분" />
+                <span className="font-bebas font-black text-3xl md:text-5xl pb-5" style={{ color: '#C8A84B', textShadow: '0 0 12px rgba(200,168,75,0.6)' }}>:</span>
+                <CountdownUnit value={seconds} label="초" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* CTA 버튼 */}
