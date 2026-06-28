@@ -303,7 +303,7 @@ function TeamSlot({ name, flag, slot, side }) {
 }
 
 // ── 토너먼트 경기 카드 (DB 데이터 기반) ──────────────────────────────────
-function KnockoutCard({ match, num, stageLabel }) {
+function KnockoutCard({ match, num, stageLabel, onVenueClick }) {
   const isConfirmed = match.home_team && match.home_team !== '미정'
   const badge = STATUS_BADGE[match.status] || STATUS_BADGE.upcoming
 
@@ -336,14 +336,20 @@ function KnockoutCard({ match, num, stageLabel }) {
 
       <div className="mt-3 pt-3 border-t border-white/5 flex justify-between text-xs text-gray-500">
         <span>📅 {formatKST(match.match_date)} KST</span>
-        <span>📍 {getVenueNameKo(match.venue)}</span>
+        <button
+          onClick={() => onVenueClick?.(match.venue)}
+          className="flex items-center gap-1 hover:text-wc-gold transition-colors group"
+          title="경기장 정보 보기"
+        >
+          📍 <span className="group-hover:underline">{getVenueNameKo(match.venue)}</span>
+        </button>
       </div>
     </div>
   )
 }
 
 // ── 토너먼트 섹션 ─────────────────────────────────────────────────────────
-function TournamentSection({ dbMatches }) {
+function TournamentSection({ dbMatches, onVenueClick }) {
   const [stage, setStage] = useState('round_of_32')
   const current = KNOCKOUT_STAGES.find((s) => s.key === stage)
 
@@ -394,7 +400,7 @@ function TournamentSection({ dbMatches }) {
       <div className={stageMatches.length === 1 ? 'flex justify-center' : 'grid grid-cols-1 md:grid-cols-2 gap-4'}>
         {stageMatches.map((m, i) => (
           <div key={m.id} className={stageMatches.length === 1 ? 'w-full max-w-md' : ''}>
-            <KnockoutCard match={m} num={i + 1} stageLabel={current?.label} />
+            <KnockoutCard match={m} num={i + 1} stageLabel={current?.label} onVenueClick={onVenueClick} />
           </div>
         ))}
         {stageMatches.length === 0 && (
@@ -455,7 +461,7 @@ export default function SchedulePage() {
         </div>
 
         {mode === 'knockout' ? (
-          <TournamentSection dbMatches={matches} />
+          <TournamentSection dbMatches={matches} onVenueClick={setVenueModal} />
         ) : (
           <>
             {/* 조 탭 */}
